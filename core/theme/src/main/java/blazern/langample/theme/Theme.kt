@@ -1,6 +1,5 @@
-package blazern.langample.ui.theme
+package blazern.langample.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
