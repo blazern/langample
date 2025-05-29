@@ -3,10 +3,9 @@ plugins {
 }
 
 android {
-    namespace = "blazern.langample.feature.home"
+    namespace = "blazern.langample.core.ui.searchbar"
 }
 
 dependencies {
     implementation(project(":core:ui:theme"))
-    implementation(project(":core:ui:searchbar"))
 }

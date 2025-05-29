@@ -58,7 +58,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     debugImplementation(libs.androidx.ui.tooling)
 
-    implementation(project(":core:theme"))
+    implementation(project(":core:ui:theme"))
     implementation(project(":feature:home"))
 
     testImplementation(libs.junit)

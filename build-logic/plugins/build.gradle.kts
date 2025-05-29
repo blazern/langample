@@ -23,6 +23,10 @@ dependencies {
 
 gradlePlugin {
     plugins {
+        create("libraryPlugin") {
+            id = "blazern.langample.plugin.library"
+            implementationClass = "LibraryPlugin"
+        }
         create("featurePlugin") {
             id = "blazern.langample.plugin.feature"
             implementationClass = "FeaturePlugin"

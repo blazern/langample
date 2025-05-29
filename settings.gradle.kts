@@ -30,5 +30,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "langample"
 include(":app")
-include(":core:theme")
+include(":core:ui:theme")
 include(":feature:home")
+include(":core:ui:searchbar")
+include(":core:strings")

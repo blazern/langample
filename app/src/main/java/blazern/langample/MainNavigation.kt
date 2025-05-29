@@ -21,12 +21,11 @@ fun MainNavigation() {
             when (key) {
                 is Home -> NavEntry(key) {
                     Column {
-                        HomeScreen()
-//                        Button(onClick = {
-//                            backStack.add(SearchResults("AAA"))
-//                        }) {
-//                            Text("Click to navigate")
-//                        }
+                        HomeScreen(
+                            onSearch = {
+                                backStack.add(SearchResults(it))
+                            }
+                        )
                     }
                 }
 
