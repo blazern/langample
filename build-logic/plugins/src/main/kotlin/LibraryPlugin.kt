@@ -12,14 +12,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 open class LibraryPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             with(pluginManager) {
-                apply("com.android.library")
-                apply("org.jetbrains.kotlin.android")
+                apply(libs.findPlugin("android-library").get().get().pluginId)
+                apply(libs.findPlugin("kotlin-android").get().get().pluginId)
+                apply(libs.findPlugin("hilt-android").get().get().pluginId)
+                apply(libs.findPlugin("ksp").get().get().pluginId)
             }
 
             extensions.configure(LibraryExtension::class.java) {
-                val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-
                 it.apply {
                     compileSdk = 36
 
@@ -55,6 +56,9 @@ open class LibraryPlugin : Plugin<Project> {
                     add("implementation", libs.findLibrary("androidx-core-ktx").get())
                     add("testImplementation", libs.findLibrary("junit").get())
                     add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
+
+                    add("implementation", libs.findLibrary("hilt-android").get())
+                    add("ksp", libs.findLibrary("hilt-android-compiler").get())
                 }
             }
         }

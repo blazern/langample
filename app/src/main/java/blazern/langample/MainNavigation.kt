@@ -1,7 +1,6 @@
 package blazern.langample
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -9,6 +8,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.compose.material3.Text
 import androidx.navigation3.ui.NavDisplay
 import blazern.langample.feature.home.HomeScreen
+import blazern.langample.feature.search_result.SearchResultsScreen
 
 @Composable
 fun MainNavigation() {
@@ -20,19 +20,15 @@ fun MainNavigation() {
         entryProvider = { key ->
             when (key) {
                 is Home -> NavEntry(key) {
-                    Column {
-                        HomeScreen(
-                            onSearch = {
-                                backStack.add(SearchResults(it))
-                            }
-                        )
-                    }
+                    HomeScreen(
+                        onSearch = {
+                            backStack.add(SearchResults(it))
+                        }
+                    )
                 }
-
                 is SearchResults -> NavEntry(key) {
-                    Text("Product: ${key.query}")
+                    SearchResultsScreen()
                 }
-
                 else -> NavEntry(Unit) { Text("Unknown route") }
             }
         }
