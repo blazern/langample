@@ -27,7 +27,7 @@ fun MainNavigation() {
                     )
                 }
                 is SearchResults -> NavEntry(key) {
-                    SearchResultsScreen()
+                    SearchResultsScreen(key.query)
                 }
                 else -> NavEntry(Unit) { Text("Unknown route") }
             }
