@@ -16,7 +16,6 @@ open class LibraryPlugin : Plugin<Project> {
             with(pluginManager) {
                 apply(libs.findPlugin("android-library").get().get().pluginId)
                 apply(libs.findPlugin("kotlin-android").get().get().pluginId)
-                apply(libs.findPlugin("hilt-android").get().get().pluginId)
                 apply(libs.findPlugin("ksp").get().get().pluginId)
             }
 
@@ -54,11 +53,9 @@ open class LibraryPlugin : Plugin<Project> {
 
                 dependencies {
                     add("implementation", libs.findLibrary("androidx-core-ktx").get())
+                    add("implementation", libs.findLibrary("koin-core").get())
                     add("testImplementation", libs.findLibrary("junit").get())
                     add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
-
-                    add("implementation", libs.findLibrary("hilt-android").get())
-                    add("ksp", libs.findLibrary("hilt-android-compiler").get())
                 }
             }
         }

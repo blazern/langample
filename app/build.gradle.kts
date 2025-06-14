@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
@@ -57,14 +56,15 @@ dependencies {
     implementation(libs.androidx.material3.navigation3)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
 
     debugImplementation(libs.androidx.ui.tooling)
 
     implementation(project(":core:ui:theme"))
     implementation(project(":feature:home"))
     implementation(project(":feature:search_result"))
+    implementation(project(":core:ktor"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

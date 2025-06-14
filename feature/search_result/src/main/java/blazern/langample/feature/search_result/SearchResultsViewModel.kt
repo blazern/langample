@@ -5,13 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import blazern.langample.data.tatoeba.TatoebaClient
-import dagger.assisted.AssistedFactory
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class SearchResultsViewModel @Inject constructor(
+class SearchResultsViewModel(
     private val tatoebaClient: TatoebaClient,
 ) : ViewModel() {
     private val _state = mutableStateOf<SearchResultsState>(SearchResultsState.PerformingSearch)

@@ -14,13 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.hilt.navigation.compose.hiltViewModel
 import blazern.langample.theme.LangampleTheme
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SearchResultsScreen(
     query: String,
-    viewModel: SearchResultsViewModel = hiltViewModel()
+    viewModel: SearchResultsViewModel = koinViewModel()
 ) {
     // TODO: probably a bad idea
     LaunchedEffect(query) {

@@ -28,7 +28,8 @@ class FeaturePlugin : LibraryPlugin() {
                     add("implementation", libs.findLibrary("material").get())
                     add("implementation", libs.findLibrary("androidx-ui-tooling-preview").get())
                     add("implementation", libs.findLibrary("androidx-material3").get())
-                    add("implementation", libs.findLibrary("hilt-navigation-compose").get())
+                    add("implementation", libs.findLibrary("koin-android").get())
+                    add("implementation", libs.findLibrary("koin-android-compose-viewmodel").get())
 
                     add("implementation", project(":core:strings"))
 

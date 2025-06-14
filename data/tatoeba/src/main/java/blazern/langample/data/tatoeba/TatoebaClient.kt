@@ -6,11 +6,8 @@ import blazern.langample.data.tatoeba.model.api.ApiResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class TatoebaClient @Inject constructor(
+class TatoebaClient(
     private val ktorClientHolder: KtorClientHolder,
 )  {
     suspend fun search(
