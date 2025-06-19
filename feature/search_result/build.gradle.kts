@@ -9,4 +9,5 @@ android {
 dependencies {
     implementation(project(":core:ui:theme"))
     implementation(project(":data:tatoeba"))
+    implementation(project(":data:chatgpt"))
 }
