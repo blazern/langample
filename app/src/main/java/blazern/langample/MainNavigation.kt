@@ -7,7 +7,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.compose.material3.Text
 import androidx.navigation3.ui.NavDisplay
 import blazern.langample.feature.home.HomeScreen
-import blazern.langample.feature.search_result.SearchResultsScreen
+import blazern.langample.feature.search_result.ui.SearchResultsScreen
 
 @Composable
 fun MainNavigation() {
