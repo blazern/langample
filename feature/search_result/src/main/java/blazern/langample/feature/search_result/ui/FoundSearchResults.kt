@@ -1,20 +1,20 @@
 package blazern.langample.feature.search_result.ui
 
-import android.text.Html
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
@@ -28,14 +28,17 @@ import blazern.langample.theme.LangampleTheme
 @Composable
 fun FoundSearchResults(
     state: SearchResultsState.Results,
+    onTextCopy: (String, Clipboard)->Unit,
     modifier: Modifier = Modifier,
 ) {
     val translations = state.examples
+    val clipboard = LocalClipboard.current
     Box(modifier = modifier) {
         Column {
             Box(Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.primary)
+                .clickable { onTextCopy(state.formsHtml, clipboard) }
             ) {
                 Text(
                     state.formsHtml,
@@ -45,6 +48,7 @@ fun FoundSearchResults(
             Box(Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.secondary)
+                .clickable { onTextCopy(state.explanation, clipboard) }
             ) {
                 Text(
                     state.explanation,
@@ -69,6 +73,7 @@ fun FoundSearchResults(
                                 )
                             }.toTypedArray(),
                         ),
+                        onSentenceClick = { onTextCopy(it.text, clipboard) },
                         modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
                     )
                 }
@@ -105,7 +110,11 @@ private fun Preview() {
     )
     LangampleTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            FoundSearchResults(state, Modifier.padding(innerPadding))
+            FoundSearchResults(
+                state = state,
+                onTextCopy = { _, _ -> },
+                modifier = Modifier.padding(innerPadding),
+            )
         }
     }
 }

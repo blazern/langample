@@ -19,5 +19,11 @@ fun SearchResultsRoute(
         parameters = { parametersOf(query, langFrom, langTo) },
     )
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    SearchResultsScreen(query, uiState)
+    SearchResultsScreen(
+        query,
+        uiState,
+        onTextCopy = { text, clipboard ->
+            viewModel.copyText(text, clipboard)
+        }
+    )
 }

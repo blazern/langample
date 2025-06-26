@@ -1,5 +1,8 @@
 package blazern.langample.feature.search_result
 
+import android.content.ClipData
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import blazern.langample.data.tatoeba.TatoebaClient
@@ -43,6 +46,14 @@ internal class SearchResultsViewModel(
                 explanation = explanation,
                 examples = examples,
             )
+        }
+    }
+
+    fun copyText(text: String, clipboard: Clipboard) {
+        viewModelScope.launch {
+            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(
+                text, text
+            )))
         }
     }
 }

@@ -2,4 +2,5 @@
 <resources>
     <string name="home_btn_search">Search</string>
     <string name="home_input_hint">Search query</string>
+    <string name="general_copied_to_clipboard">Copied to clipboard</string>
 </resources>
