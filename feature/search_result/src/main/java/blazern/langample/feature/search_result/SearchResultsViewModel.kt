@@ -6,7 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import blazern.langample.data.chatgpt.ChatGPTClient
 import blazern.langample.data.tatoeba.TatoebaClient
-import blazern.langample.data.tatoeba.model.SentencesPair
+import blazern.langample.domain.model.Sentence
+import blazern.langample.domain.model.TranslationsSet
 import kotlinx.coroutines.launch
 
 class SearchResultsViewModel(
@@ -20,7 +21,7 @@ class SearchResultsViewModel(
         val langFrom = Lang.RU
         val langTo = Lang.DE
         viewModelScope.launch {
-            // TODO: create a use case?
+            // TODO: create a usecase?
             var examples = tatoebaClient.search(query, langFrom, langTo)
 
             val request = """
@@ -31,9 +32,16 @@ class SearchResultsViewModel(
             """.trimIndent()
 
             val chatGptResponse = chatGPTClient.request(request)
-            examples = examples + listOf(SentencesPair(
-                chatGptResponse.split("|||").first(),
-                chatGptResponse.split("|||").last(),
+            examples = examples + listOf(
+                TranslationsSet(
+                    original = Sentence(
+                        chatGptResponse.split("|||").first(),
+                        langFrom,
+                    ),
+                    translations = listOf(Sentence(
+                        chatGptResponse.split("|||").last(),
+                        langTo,
+                    ))
                 )
             )
 

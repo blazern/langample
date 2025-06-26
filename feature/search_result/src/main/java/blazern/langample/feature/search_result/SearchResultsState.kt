@@ -1,7 +1,7 @@
 package blazern.langample.feature.search_result
 
 import androidx.compose.runtime.Immutable
-import blazern.langample.data.tatoeba.model.SentencesPair
+import blazern.langample.domain.model.TranslationsSet
 
 @Immutable
 sealed class SearchResultsState {
@@ -11,6 +11,6 @@ sealed class SearchResultsState {
     @Immutable
     data class Results(
         val explanation: String,
-        val examples: List<SentencesPair>,
+        val examples: List<TranslationsSet>,
     ) : SearchResultsState()
 }
