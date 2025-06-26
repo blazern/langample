@@ -4,13 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +41,7 @@ internal fun SentencesCard(
             for (sentenceData in sentences) {
                 Box(contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = 40.dp)
                         .fillMaxWidth()
                         .background(sentenceData.backgroundColor)
                         .clickable { onSentenceClick(sentenceData) },
@@ -52,7 +49,10 @@ internal fun SentencesCard(
                     Text(
                         sentenceData.text,
                         color = sentenceData.textColor,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(
+                            horizontal = 20.dp,
+                            vertical = 8.dp,
+                        )
                     )
                 }
             }
@@ -68,16 +68,21 @@ fun Sentences2CardPreview() {
             listOf(
                 SentenceData(
                     "Ein Hund sitzt auf dem Sofa und guckt mich an während ich esse",
-                    MaterialTheme.colorScheme.primaryContainer,
-                    textColor = Color.DarkGray,
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                    textColor = MaterialTheme.colorScheme.onPrimary,
                 ),
                 SentenceData(
                     "A dog sits on a sofa and looks at me while I eat",
-                    MaterialTheme.colorScheme.secondaryContainer,
-                    textColor = Color.Black,
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    textColor = MaterialTheme.colorScheme.onSecondary,
+                ),
+                SentenceData(
+                    "Пёс сидит на диване и глядит как я ем",
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    textColor = MaterialTheme.colorScheme.onSecondary,
                 ),
             ),
-            modifier = Modifier.width(256.dp),
+            modifier = Modifier,
         )
     }
 }
@@ -92,7 +97,7 @@ fun Sentences3CardPreview() {
                 SentenceData("Two", Color.Green),
                 SentenceData("Three", Color.Blue),
             ),
-            modifier = Modifier,
+            modifier = Modifier.width(256.dp),
         )
     }
 }
