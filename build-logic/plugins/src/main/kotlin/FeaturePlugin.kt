@@ -30,6 +30,7 @@ class FeaturePlugin : LibraryPlugin() {
                     add("implementation", libs.findLibrary("androidx-material3").get())
                     add("implementation", libs.findLibrary("koin-android").get())
                     add("implementation", libs.findLibrary("koin-android-compose-viewmodel").get())
+                    add("implementation", libs.findLibrary("androidx-lifecycle-compose").get())
 
                     add("implementation", project(":core:strings"))
 

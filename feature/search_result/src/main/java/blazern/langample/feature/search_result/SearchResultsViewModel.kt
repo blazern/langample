@@ -1,23 +1,29 @@
 package blazern.langample.feature.search_result
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
+import Lang
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import blazern.langample.data.chatgpt.ChatGPTClient
 import blazern.langample.data.tatoeba.TatoebaClient
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SearchResultsViewModel(
+internal class SearchResultsViewModel(
+    private val startQuery: String,
     private val tatoebaClient: TatoebaClient,
     private val chatGPTClient: ChatGPTClient,
 ) : ViewModel() {
-    private val _state = mutableStateOf<SearchResultsState>(SearchResultsState.PerformingSearch)
-    val state: State<SearchResultsState> = _state
+    private val _state = MutableStateFlow<SearchResultsState>(SearchResultsState.PerformingSearch)
+    val state: StateFlow<SearchResultsState> = _state
 
-    fun search(query: String) {
+    init {
+        search(startQuery)
+    }
+
+    private fun search(query: String) {
         val langFrom = Lang.RU
         val langTo = Lang.DE
         viewModelScope.launch {
