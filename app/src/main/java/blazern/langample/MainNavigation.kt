@@ -6,8 +6,9 @@ import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavEntry
 import androidx.compose.material3.Text
 import androidx.navigation3.ui.NavDisplay
+import blazern.langample.domain.model.Lang
 import blazern.langample.feature.home.HomeScreen
-import blazern.langample.feature.search_result.ui.SearchResultsRoute
+import blazern.langample.feature.search_result.SearchResultsRoute
 
 @Composable
 fun MainNavigation() {
@@ -26,7 +27,7 @@ fun MainNavigation() {
                     )
                 }
                 is SearchResults -> NavEntry(key) {
-                    SearchResultsRoute(key.query)
+                    SearchResultsRoute(key.query, Lang.DE, Lang.RU)
                 }
                 else -> NavEntry(Unit) { Text("Unknown route") }
             }

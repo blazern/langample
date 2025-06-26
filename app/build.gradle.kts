@@ -65,6 +65,7 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:search_result"))
     implementation(project(":core:ktor"))
+    implementation(project(":domain:model"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

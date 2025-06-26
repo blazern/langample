@@ -1,6 +1,6 @@
 package blazern.langample.domain.model
 
-import Lang
+import blazern.langample.domain.model.Lang
 
 data class Sentence(
     val text: String,
