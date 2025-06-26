@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import blazern.langample.data.tatoeba.TatoebaClient
+import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.feature.search_result.llm.LLMWordExplanation
 import blazern.langample.feature.search_result.usecase.ChatGPTWordSearchUseCase
@@ -43,7 +44,9 @@ internal class SearchResultsViewModel(
             val explanation = chatGptResponse.explanation
             _state.value = SearchResultsState.Results(
                 formsHtml = formsHtml,
+                formsSource = DataSource.CHATGPT,
                 explanation = explanation,
+                explanationSource = DataSource.CHATGPT,
                 examples = examples,
             )
         }

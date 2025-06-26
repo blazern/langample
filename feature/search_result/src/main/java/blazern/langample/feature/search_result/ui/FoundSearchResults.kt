@@ -1,16 +1,10 @@
 package blazern.langample.feature.search_result.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.Clipboard
@@ -18,7 +12,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.dp
+import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
@@ -26,7 +20,7 @@ import blazern.langample.feature.search_result.SearchResultsState
 import blazern.langample.theme.LangampleTheme
 
 @Composable
-fun FoundSearchResults(
+internal fun FoundSearchResults(
     state: SearchResultsState.Results,
     onTextCopy: (String, Clipboard)->Unit,
     modifier: Modifier = Modifier,
@@ -35,76 +29,40 @@ fun FoundSearchResults(
     val clipboard = LocalClipboard.current
     Box(modifier = modifier) {
         Column {
-            Box(Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable { onTextCopy(state.formsHtml, clipboard) }
-            ) {
-                Text(
-                    state.formsHtml,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.padding(16.dp))
-            }
-            Box(Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.secondary)
-                .clickable { onTextCopy(state.explanation, clipboard) }
-            ) {
-                Text(
-                    state.explanation,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    modifier = Modifier.padding(16.dp))
-            }
-            LazyColumn {
-                items(translations.size) { index ->
-                    val example = translations[index]
-                    SentencesCard(
-                        sentences = listOf(
-                            SentenceData(
-                                text = example.original.text,
-                                backgroundColor = MaterialTheme.colorScheme.primary,
-                                textColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
-                            *example.translations.map {
-                                SentenceData(
-                                    text = it.text,
-                                    backgroundColor = MaterialTheme.colorScheme.secondary,
-                                    textColor = MaterialTheme.colorScheme.onSecondary,
-                                )
-                            }.toTypedArray(),
-                        ),
-                        onSentenceClick = { onTextCopy(it.text, clipboard) },
-                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
-                    )
-                }
-            }
+            FoundSearchResultsHeader(state, clipboard, onTextCopy)
+            FoundSearchResultsSentences(translations, clipboard, onTextCopy)
         }
     }
 }
-
 
 @PreviewScreenSizes
 @Preview(device = PIXEL_3A_XL, name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
 private fun Preview() {
     val state = SearchResultsState.Results(
-        formsHtml = "Hund, -e",
+        formsHtml = "der Hund, -e",
+        formsSource = DataSource.CHATGPT,
         explanation = "Hund is Dog",
+        explanationSource = DataSource.CHATGPT,
         examples = listOf(
             TranslationsSet(
-                Sentence("The dog barks", Lang.EN),
-                listOf(Sentence("Der Hund bellt", Lang.DE)),
+                Sentence("The dog barks", Lang.EN, DataSource.TATOEBA),
+                listOf(Sentence("Der Hund bellt", Lang.DE, DataSource.TATOEBA)),
             ),
             TranslationsSet(
-                Sentence("The dog sits", Lang.EN),
+                Sentence("The dog sits", Lang.EN, DataSource.CHATGPT),
                 listOf(
-                    Sentence("Der Hund sitzt", Lang.DE),
-                    Sentence("Собака сидит", Lang.RU),
+                    Sentence("Der Hund sitzt", Lang.DE, DataSource.CHATGPT),
+                    Sentence("Собака сидит", Lang.RU, DataSource.CHATGPT),
                 ),
             ),
             TranslationsSet(
-                Sentence("A dog sits on a sofa and looks at me", Lang.EN),
-                listOf(Sentence("Ein Hund sitzt auf dem Sofa und guckt mich an", Lang.DE)),
+                Sentence("A dog sits on a sofa and looks at me", Lang.EN, DataSource.CHATGPT),
+                listOf(Sentence(
+                    "Ein Hund sitzt auf dem Sofa und guckt mich an",
+                    Lang.DE,
+                    DataSource.CHATGPT,
+                )),
             ),
         )
     )

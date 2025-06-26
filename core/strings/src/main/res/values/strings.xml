@@ -2,5 +2,9 @@
 <resources>
     <string name="home_btn_search">Search</string>
     <string name="home_input_hint">Search query</string>
+
     <string name="general_copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="general_data_source_tatoeba">Tatoeba</string>
+    <string name="general_data_source_chatgpt">ChatGPT</string>
 </resources>

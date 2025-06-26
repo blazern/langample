@@ -5,3 +5,7 @@ plugins {
 android {
     namespace = "blazern.langample.domain.model"
 }
+
+dependencies {
+    implementation(project(":core:strings"))
+}

@@ -2,6 +2,7 @@ package blazern.langample.feature.search_result.usecase
 
 import android.util.Log
 import blazern.langample.data.chatgpt.ChatGPTClient
+import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
@@ -10,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-class ChatGPTWordSearchUseCase(
+internal class ChatGPTWordSearchUseCase(
     private val chatGPTClient: ChatGPTClient,
 ) {
     suspend fun invoke(
@@ -20,12 +21,12 @@ class ChatGPTWordSearchUseCase(
     ): Result<LLMWordExplanation> {
         val formsExplanation = """
                 if noun: article, singular form, plural form changes, e.g.:
-                - der Hund, -e
-                - der Platz, -äe
-                - der Wurm, -(ü)e
+                der Hund, -e
+                der Platz, -äe
+                der Wurm, -(ü)e
                 if verb: follow next examples:
-                - gehen, geht, ging, ist gegangen
-                - lieben, liebt, liebte, hat geliebt
+                gehen, geht, ging, ist gegangen
+                lieben, liebt, liebte, hat geliebt
                 for others (adverb, adjective) make it as simple as possible
             """.trimIndent()
 
@@ -66,11 +67,13 @@ class ChatGPTWordSearchUseCase(
                 original = Sentence(
                     it.split("|").first(),
                     langFrom,
+                    DataSource.CHATGPT,
                 ),
                 translations = listOf(
                     Sentence(
                         it.split("|").last(),
                         langTo,
+                        DataSource.CHATGPT,
                     )
                 )
             )
