@@ -8,8 +8,8 @@ import blazern.langample.domain.model.Sentence
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import kotlinx.io.IOException
 
-// TODO: test
 class TatoebaClient(
     private val ktorClientHolder: KtorClientHolder,
 )  {
@@ -17,17 +17,20 @@ class TatoebaClient(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): List<TranslationsSet> {
-        // TODO: network errors
+    ): Result<List<TranslationsSet>> {
         val url = "https://tatoeba.org/en/api_v0/search"
-        val response: ApiResponse = ktorClientHolder.client.get(url) {
-            parameter("from", langFrom.iso3)
-            parameter("to", langTo.iso3)
-            parameter("trans_to", langTo.iso3)
-            parameter("query", query)
-            parameter("trans_filter", "limit")
-            parameter("trans_link", "direct")
-        }.body()
+        val response: ApiResponse = try {
+            ktorClientHolder.client.get(url) {
+                parameter("from", langFrom.iso3)
+                parameter("to", langTo.iso3)
+                parameter("trans_to", langTo.iso3)
+                parameter("query", query)
+                parameter("trans_filter", "limit")
+                parameter("trans_link", "direct")
+            }.body()
+        } catch (e: IOException) {
+            return Result.failure(e)
+        }
 
         val result = mutableListOf<TranslationsSet>()
         for (sentenceTatoeba in response.results) {
@@ -42,6 +45,6 @@ class TatoebaClient(
                 translations = translations,
             ))
         }
-        return result
+        return Result.success(result)
     }
 }

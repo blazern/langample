@@ -1,22 +1,22 @@
 package blazern.langample.feature.search_result
 
-import blazern.langample.domain.model.Lang
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import blazern.langample.data.chatgpt.ChatGPTClient
 import blazern.langample.data.tatoeba.TatoebaClient
-import blazern.langample.domain.model.Sentence
-import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.Lang
+import blazern.langample.feature.search_result.llm.LLMWordExplanation
+import blazern.langample.feature.search_result.usecase.ChatGPTWordSearchUseCase
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 internal class SearchResultsViewModel(
-    private val startQuery: String,
+    startQuery: String,
     private val langFrom: Lang,
     private val langTo: Lang,
     private val tatoebaClient: TatoebaClient,
-    private val chatGPTClient: ChatGPTClient,
+    private val chatGPTUseCase: ChatGPTWordSearchUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<SearchResultsState>(SearchResultsState.PerformingSearch)
     val state: StateFlow<SearchResultsState> = _state
@@ -27,32 +27,20 @@ internal class SearchResultsViewModel(
 
     private fun search(query: String) {
         viewModelScope.launch {
-            // TODO: create a usecase?
-            var examples = tatoebaClient.search(query, langFrom, langTo)
+            val examplesAsync = async { tatoebaClient.search(query, langFrom, langTo) }
+            val chatGptResponseAsync = async { chatGPTUseCase.invoke(query, langFrom, langTo) }
 
-            val request = """
-                you are called from a language learning app
-                generate 1 sentence example with the word $query
-                your output must follow next format:
-                <sentence with the word in language: ${langFrom.iso2}> ||| <translation of the first sentence into ${langTo.iso2}>
-            """.trimIndent()
+            var examples = examplesAsync.await().getOrElse { emptyList() }
+            val chatGptResponse = chatGptResponseAsync.await().getOrElse {
+                LLMWordExplanation(it.message ?: "$it", "-", emptyList())
+            }
 
-            val chatGptResponse = chatGPTClient.request(request)
-            examples = examples + listOf(
-                TranslationsSet(
-                    original = Sentence(
-                        chatGptResponse.split("|||").first(),
-                        langFrom,
-                    ),
-                    translations = listOf(Sentence(
-                        chatGptResponse.split("|||").last(),
-                        langTo,
-                    ))
-                )
-            )
-
+            examples = examples + chatGptResponse.examples
+            val formsHtml = chatGptResponse.formsHtml
+            val explanation = chatGptResponse.explanation
             _state.value = SearchResultsState.Results(
-                explanation = query,
+                formsHtml = formsHtml,
+                explanation = explanation,
                 examples = examples,
             )
         }

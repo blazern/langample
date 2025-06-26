@@ -10,6 +10,7 @@ sealed class SearchResultsState {
 
     @Immutable
     data class Results(
+        val formsHtml: String,
         val explanation: String,
         val examples: List<TranslationsSet>,
     ) : SearchResultsState()

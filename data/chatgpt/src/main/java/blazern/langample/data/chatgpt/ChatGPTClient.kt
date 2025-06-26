@@ -9,6 +9,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import kotlinx.io.IOException
 
 class ChatGPTClient(
     private val ktorClientHolder: KtorClientHolder,
@@ -16,7 +17,7 @@ class ChatGPTClient(
     suspend fun request(
         query: String,
         model: String = "gpt-4.1",
-    ): String {
+    ): Result<String> {
         val url = "https://api.openai.com/v1/responses"
 
         val requestBody = mapOf(
@@ -24,13 +25,17 @@ class ChatGPTClient(
             "input" to query.replace('\n', ' ').trim()
         )
         // TODO: network errors
-        val response: ApiResponse = ktorClientHolder.client.post(url) {
-            contentType(ContentType.Application.Json)
-            header(HttpHeaders.Authorization, "Bearer ${BuildConfig.CHATGPT_API_KEY}")
-            setBody(requestBody)
-        }.body()
+        val response: ApiResponse = try {
+            ktorClientHolder.client.post(url) {
+                contentType(ContentType.Application.Json)
+                header(HttpHeaders.Authorization, "Bearer ${BuildConfig.CHATGPT_API_KEY}")
+                setBody(requestBody)
+            }.body()
+        } catch (e: IOException) {
+            return Result.failure(e)
+        }
 
-        // TODO: handle properly
-        return response.output.first().content.first().text
+        val result = response.output.first().content.first().text
+        return Result.success(result)
     }
 }
