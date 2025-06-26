@@ -11,5 +11,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.ktor.client.core)
 
+    api(project(":domain:model"))
     implementation(project(":core:ktor"))
 }

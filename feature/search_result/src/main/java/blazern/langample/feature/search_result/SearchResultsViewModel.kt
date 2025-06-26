@@ -17,8 +17,8 @@ class SearchResultsViewModel(
     val state: State<SearchResultsState> = _state
 
     fun search(query: String) {
-        val langFrom = "rus"
-        val langTo = "due"
+        val langFrom = Lang.RU
+        val langTo = Lang.DE
         viewModelScope.launch {
             // TODO: create a use case?
             var examples = tatoebaClient.search(query, langFrom, langTo)

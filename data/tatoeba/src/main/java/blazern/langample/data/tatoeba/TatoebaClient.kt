@@ -1,5 +1,6 @@
 package blazern.langample.data.tatoeba
 
+import Lang
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.data.tatoeba.model.SentencesPair
 import blazern.langample.data.tatoeba.model.api.ApiResponse
@@ -12,24 +13,26 @@ class TatoebaClient(
 )  {
     suspend fun search(
         query: String,
-        langFrom: String,
-        langTo: String,
+        langFrom: Lang,
+        langTo: Lang,
     ): List<SentencesPair> {
         // TODO: network errors
         val url = "https://tatoeba.org/en/api_v0/search"
         val response: ApiResponse = ktorClientHolder.client.get(url) {
-            parameter("from", langFrom)
-            parameter("to", langTo)
+            parameter("from", langTo.iso3)
+            parameter("to", langFrom.iso3)
+            parameter("trans_to", langFrom.iso3)
             parameter("query", query)
             parameter("trans_filter", "limit")
             parameter("trans_link", "direct")
-            parameter("trans_to", "deu")
         }.body()
 
         val result = mutableListOf<SentencesPair>()
         for (sentence in response.results) {
             for (translation in sentence.translations.flatten()) {
-                result.add(SentencesPair(sentence.text, translation.text))
+                if (translation.lang == langFrom.iso3) {
+                    result.add(SentencesPair(sentence.text, translation.text))
+                }
             }
         }
         return result
