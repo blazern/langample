@@ -54,6 +54,7 @@ open class LibraryPlugin : Plugin<Project> {
                 dependencies {
                     add("implementation", libs.findLibrary("androidx-core-ktx").get())
                     add("implementation", libs.findLibrary("koin-core").get())
+                    add("implementation", libs.findLibrary("arrow-core").get())
                     add("testImplementation", libs.findLibrary("junit").get())
                     add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
                 }

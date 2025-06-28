@@ -5,6 +5,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import arrow.core.getOrElse
 import blazern.langample.data.tatoeba.TatoebaClient
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang

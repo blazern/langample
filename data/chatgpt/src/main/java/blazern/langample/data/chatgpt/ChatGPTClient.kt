@@ -1,5 +1,7 @@
 package blazern.langample.data.chatgpt
 
+import arrow.core.Either
+import arrow.core.right
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.data.chatgpt.model.api.ApiResponse
 import io.ktor.client.call.body
@@ -17,7 +19,7 @@ class ChatGPTClient(
     suspend fun request(
         query: String,
         model: String = "gpt-4.1",
-    ): Result<String> {
+    ): Either<IOException, String> {
         val url = "https://api.openai.com/v1/responses"
 
         val requestBody = mapOf(
@@ -32,10 +34,10 @@ class ChatGPTClient(
                 setBody(requestBody)
             }.body()
         } catch (e: IOException) {
-            return Result.failure(e)
+            return Either.Left(e)
         }
 
         val result = response.output.first().content.first().text
-        return Result.success(result)
+        return Either.Right(result)
     }
 }

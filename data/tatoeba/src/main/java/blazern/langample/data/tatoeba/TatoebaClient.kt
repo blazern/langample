@@ -1,5 +1,6 @@
 package blazern.langample.data.tatoeba
 
+import arrow.core.Either
 import blazern.langample.domain.model.Lang
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.domain.model.TranslationsSet
@@ -18,7 +19,7 @@ class TatoebaClient(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): Result<List<TranslationsSet>> {
+    ): Either<IOException, List<TranslationsSet>> {
         val url = "https://tatoeba.org/en/api_v0/search"
         val response: ApiResponse = try {
             ktorClientHolder.client.get(url) {
@@ -30,7 +31,7 @@ class TatoebaClient(
                 parameter("trans_link", "direct")
             }.body()
         } catch (e: IOException) {
-            return Result.failure(e)
+            return Either.Left(e)
         }
 
         val result = mutableListOf<TranslationsSet>()
@@ -54,6 +55,6 @@ class TatoebaClient(
                 translations = translations,
             ))
         }
-        return Result.success(result)
+        return Either.Right(result)
     }
 }

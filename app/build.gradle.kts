@@ -63,7 +63,7 @@ dependencies {
 
     implementation(project(":core:ui:theme"))
     implementation(project(":feature:home"))
-    implementation(project(":feature:search_result"))
+    implementation(project(":feature:search-result"))
     implementation(project(":core:ktor"))
     implementation(project(":domain:model"))
 
