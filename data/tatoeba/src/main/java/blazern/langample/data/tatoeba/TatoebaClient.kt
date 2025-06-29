@@ -46,14 +46,16 @@ class TatoebaClient(
                     ))
                 }
             }
-            result.add(TranslationsSet(
-                original = Sentence(
-                    sentenceTatoeba.text,
-                    langTo,
-                    DataSource.TATOEBA,
-                ),
-                translations = translations,
-            ))
+            if (translations.isNotEmpty()) {
+                result.add(TranslationsSet(
+                    original = Sentence(
+                        text = sentenceTatoeba.text,
+                        lang = langFrom,
+                        source = DataSource.TATOEBA,
+                    ),
+                    translations = translations,
+                ))
+            }
         }
         return Either.Right(result)
     }

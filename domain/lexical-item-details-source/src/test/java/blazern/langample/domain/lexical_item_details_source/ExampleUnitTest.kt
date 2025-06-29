@@ -1,4 +1,4 @@
-package blazern.langample.data.tatoeba
+package blazern.langample.domain.lexical_item_details_source
 
 import org.junit.Test
 

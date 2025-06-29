@@ -5,13 +5,11 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import arrow.core.getOrElse
-import blazern.langample.data.tatoeba.TatoebaClient
+import arrow.core.Either
+import blazern.langample.domain.lexical_item_details_source.LexicalItemDetailsSource
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
-import blazern.langample.feature.search_result.llm.LLMWordExplanation
-import blazern.langample.feature.search_result.usecase.ChatGPTWordSearchUseCase
-import kotlinx.coroutines.async
+import blazern.langample.domain.model.LexicalItemDetail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,8 +18,7 @@ internal class SearchResultsViewModel(
     startQuery: String,
     private val langFrom: Lang,
     private val langTo: Lang,
-    private val tatoebaClient: TatoebaClient,
-    private val chatGPTUseCase: ChatGPTWordSearchUseCase,
+    private val dataSources: List<LexicalItemDetailsSource>,
 ) : ViewModel() {
     private val _state = MutableStateFlow<SearchResultsState>(SearchResultsState.PerformingSearch)
     val state: StateFlow<SearchResultsState> = _state
@@ -31,25 +28,59 @@ internal class SearchResultsViewModel(
     }
 
     private fun search(query: String) {
-        viewModelScope.launch {
-            val examplesAsync = async { tatoebaClient.search(query, langFrom, langTo) }
-            val chatGptResponseAsync = async { chatGPTUseCase.invoke(query, langFrom, langTo) }
-
-            var examples = examplesAsync.await().getOrElse { emptyList() }
-            val chatGptResponse = chatGptResponseAsync.await().getOrElse {
-                LLMWordExplanation(it.message ?: "$it", "-", emptyList())
+        val futureResults = dataSources.map {
+            it.request(query, langFrom, langTo)
+        }.flatten()
+        for (futureResult in futureResults) {
+            viewModelScope.launch {
+                futureResult.details.collect {
+                    onNewLexicalDetail(it)
+                }
             }
+        }
+    }
 
-            examples = examples + chatGptResponse.examples
-            val formsHtml = chatGptResponse.formsHtml
-            val explanation = chatGptResponse.explanation
-            _state.value = SearchResultsState.Results(
-                formsHtml = formsHtml,
+    private fun onNewLexicalDetail(lexicalDetailRes: Either<Exception, LexicalItemDetail>) {
+        val oldState = when (val state = _state.value) {
+            SearchResultsState.Error -> TODO()
+            SearchResultsState.PerformingSearch -> SearchResultsState.Results(
+                formsHtml = "",
                 formsSource = DataSource.CHATGPT,
-                explanation = explanation,
+                explanation = "",
                 explanationSource = DataSource.CHATGPT,
-                examples = examples,
+                examples = emptyList(),
             )
+            is SearchResultsState.Results -> state
+        }
+
+        val lexicalDetail = lexicalDetailRes.fold(
+            {
+                _state.value = oldState.copy(
+                    formsHtml = it.toString(),
+                    explanation = it.toString(),
+                )
+                return
+            },
+            { it }
+        )
+        _state.value = when (lexicalDetail) {
+            is LexicalItemDetail.Forms -> {
+                oldState.copy(
+                    formsHtml = lexicalDetail.text,
+                    formsSource = lexicalDetail.sources.first(),
+                )
+            }
+            is LexicalItemDetail.Explanation -> {
+                oldState.copy(
+                    explanation = lexicalDetail.text,
+                    explanationSource = lexicalDetail.sources.first(),
+                )
+            }
+            is LexicalItemDetail.Example -> {
+                oldState.copy(
+                    examples = oldState.examples + lexicalDetail.translationsSet
+                )
+            }
         }
     }
 

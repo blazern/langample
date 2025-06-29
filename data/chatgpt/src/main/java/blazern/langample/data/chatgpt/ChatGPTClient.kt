@@ -26,7 +26,6 @@ class ChatGPTClient(
             "model" to model,
             "input" to query.replace('\n', ' ').trim()
         )
-        // TODO: network errors
         val response: ApiResponse = try {
             ktorClientHolder.client.post(url) {
                 contentType(ContentType.Application.Json)

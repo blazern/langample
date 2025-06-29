@@ -5,6 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.kotlin
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -56,6 +57,9 @@ open class LibraryPlugin : Plugin<Project> {
                     add("implementation", libs.findLibrary("koin-core").get())
                     add("implementation", libs.findLibrary("arrow-core").get())
                     add("testImplementation", libs.findLibrary("junit").get())
+                    add("testImplementation", libs.findLibrary("ktor-client-mock").get())
+                    add("testImplementation", libs.findLibrary("mockk").get())
+                    add("testImplementation", kotlin("test"))
                     add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
                 }
             }
