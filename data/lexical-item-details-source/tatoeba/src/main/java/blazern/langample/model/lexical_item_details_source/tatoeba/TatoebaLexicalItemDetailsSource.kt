@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.flow
 class TatoebaLexicalItemDetailsSource(
     private val tatoebaClient: TatoebaClient,
 ) : LexicalItemDetailsSource {
+    override val source = DataSource.TATOEBA
+
     override fun request(
         query: String,
         langFrom: Lang,
@@ -34,7 +36,7 @@ class TatoebaLexicalItemDetailsSource(
             translationsSets.forEach {
                 emit(Right(LexicalItemDetail.Example(
                     translationsSet = it,
-                    sources = listOf(DataSource.TATOEBA),
+                    source = source,
                 )))
             }
         }
@@ -42,8 +44,7 @@ class TatoebaLexicalItemDetailsSource(
             FutureLexicalItemDetails(
             details = translationsFlow,
             type = LexicalItemDetail.Type.EXAMPLE,
-            sources = listOf(DataSource.TATOEBA),
-        )
-        )
+            source = source,
+        ))
     }
 }

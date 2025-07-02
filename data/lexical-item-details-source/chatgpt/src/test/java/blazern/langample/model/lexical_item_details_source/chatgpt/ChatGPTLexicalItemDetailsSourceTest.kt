@@ -43,14 +43,14 @@ class ChatGPTLexicalItemDetailsSourceTest {
         val explanation = futureDetails.single { it.type == LexicalItemDetail.Type.EXPLANATION }
             .details.single().getOrNull()!! as LexicalItemDetail.Explanation
         assertEquals(
-            LexicalItemDetail.Explanation("Der Hund ist ein Haustier.", listOf(DataSource.CHATGPT)),
+            LexicalItemDetail.Explanation("Der Hund ist ein Haustier.", DataSource.CHATGPT),
             explanation,
         )
 
         val forms = futureDetails.single { it.type == LexicalItemDetail.Type.FORMS }
             .details.single().getOrNull()!! as LexicalItemDetail.Forms
         assertEquals(
-            LexicalItemDetail.Forms("der Hund, -e", listOf(DataSource.CHATGPT)),
+            LexicalItemDetail.Forms("der Hund, -e", DataSource.CHATGPT),
             forms,
         )
 
@@ -69,7 +69,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
             ),
         )
         val expectedExamples = expectedSets.map {
-            LexicalItemDetail.Example(it, listOf(DataSource.CHATGPT))
+            LexicalItemDetail.Example(it, DataSource.CHATGPT)
         }
 
         assertEquals(expectedExamples, examples)

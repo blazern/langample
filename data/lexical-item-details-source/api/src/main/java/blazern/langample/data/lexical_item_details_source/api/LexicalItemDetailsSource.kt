@@ -9,10 +9,11 @@ import kotlinx.coroutines.flow.Flow
 class FutureLexicalItemDetails(
     val details: Flow<Either<Exception, LexicalItemDetail>>,
     val type: LexicalItemDetail.Type,
-    val sources: List<DataSource>,
+    val source: DataSource,
 )
 
 interface LexicalItemDetailsSource {
+    val source: DataSource
     fun request(
         query: String,
         langFrom: Lang,

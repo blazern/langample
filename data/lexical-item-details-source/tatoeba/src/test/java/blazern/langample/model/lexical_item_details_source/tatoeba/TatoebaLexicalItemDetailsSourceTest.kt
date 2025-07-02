@@ -43,8 +43,8 @@ class TatoebaLexicalItemDetailsSourceTest {
             futureResults.type,
         )
         assertEquals(
-            listOf(DataSource.TATOEBA),
-            futureResults.sources,
+            DataSource.TATOEBA,
+            futureResults.source,
         )
 
         val results = futureResults.details.toList()
@@ -52,7 +52,7 @@ class TatoebaLexicalItemDetailsSourceTest {
         val expected = translationsSets.map {
             LexicalItemDetail.Example(
                 it,
-                sources = listOf(DataSource.TATOEBA),
+                source = DataSource.TATOEBA,
             )
         }
         assertEquals(expected, results)

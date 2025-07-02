@@ -67,13 +67,13 @@ internal class SearchResultsViewModel(
             is LexicalItemDetail.Forms -> {
                 oldState.copy(
                     formsHtml = lexicalDetail.text,
-                    formsSource = lexicalDetail.sources.first(),
+                    formsSource = lexicalDetail.source,
                 )
             }
             is LexicalItemDetail.Explanation -> {
                 oldState.copy(
                     explanation = lexicalDetail.text,
-                    explanationSource = lexicalDetail.sources.first(),
+                    explanationSource = lexicalDetail.source,
                 )
             }
             is LexicalItemDetail.Example -> {

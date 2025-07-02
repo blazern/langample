@@ -26,6 +26,8 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 class ChatGPTLexicalItemDetailsSource(
     private val chatGPTClient: ChatGPTClient,
 ) : LexicalItemDetailsSource {
+    override val source = DataSource.CHATGPT
+
     override fun request(
         query: String,
         langFrom: Lang,
@@ -43,19 +45,18 @@ class ChatGPTLexicalItemDetailsSource(
             }
         }
 
-        val sources = listOf(DataSource.CHATGPT)
         val explanation = flow {
-            emit(obtain().map { LexicalItemDetail.Explanation(it.explanation, sources) })
+            emit(obtain().map { LexicalItemDetail.Explanation(it.explanation, source) })
         }
         val forms = flow {
-            emit(obtain().map { LexicalItemDetail.Forms(it.forms, sources) })
+            emit(obtain().map { LexicalItemDetail.Forms(it.forms, source) })
         }
         val examples: Flow<Either<Exception, LexicalItemDetail>> = flow {
             obtain().map { it.convertExamples(langFrom, langTo) }.fold(
                 { emit(Left(it)) },
                 {
                     it.forEach {
-                        emit(Right(LexicalItemDetail.Example(it, sources)))
+                        emit(Right(LexicalItemDetail.Example(it, source)))
                     }
                 }
             )
@@ -64,17 +65,17 @@ class ChatGPTLexicalItemDetailsSource(
             FutureLexicalItemDetails(
                 explanation,
                 LexicalItemDetail.Type.EXPLANATION,
-                sources,
+                source,
             ),
             FutureLexicalItemDetails(
                 forms,
                 LexicalItemDetail.Type.FORMS,
-                sources,
+                source,
             ),
             FutureLexicalItemDetails(
                 examples,
                 LexicalItemDetail.Type.EXAMPLE,
-                sources,
+                source,
             ),
         )
     }

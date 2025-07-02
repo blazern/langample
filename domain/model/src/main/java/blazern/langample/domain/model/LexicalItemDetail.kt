@@ -2,22 +2,22 @@ package blazern.langample.domain.model
 
 sealed class LexicalItemDetail(
     val type: Type,
-    open val sources: List<DataSource>,
+    open val source: DataSource,
 ) {
     data class Forms(
         val text: String,
-        override val sources: List<DataSource>,
-    ) : LexicalItemDetail(Type.FORMS, sources)
+        override val source: DataSource,
+    ) : LexicalItemDetail(Type.FORMS, source)
 
     data class Explanation(
         val text: String,
-        override val sources: List<DataSource>,
-    ) : LexicalItemDetail(Type.EXPLANATION, sources)
+        override val source: DataSource,
+    ) : LexicalItemDetail(Type.EXPLANATION, source)
 
     data class Example(
         val translationsSet: TranslationsSet,
-        override val sources: List<DataSource>,
-    ) : LexicalItemDetail(Type.EXAMPLE, sources)
+        override val source: DataSource,
+    ) : LexicalItemDetail(Type.EXAMPLE, source)
 
     enum class Type {
         FORMS,
