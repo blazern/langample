@@ -8,5 +8,5 @@ android {
 
 dependencies {
     implementation(project(":core:ui:theme"))
-    implementation(project(":domain:lexical-item-details-source"))
+    implementation(project(":data:lexical-item-details-source:api"))
 }

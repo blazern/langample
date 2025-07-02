@@ -1,4 +1,4 @@
-package blazern.langample.domain.lexical_item_details_source
+package blazern.langample.data.lexical_item_details_source.api
 
 import arrow.core.Either
 import blazern.langample.domain.model.DataSource

@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import arrow.core.Either
-import blazern.langample.domain.lexical_item_details_source.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail

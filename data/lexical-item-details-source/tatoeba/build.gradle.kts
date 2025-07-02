@@ -7,6 +7,6 @@ android {
 }
 
 dependencies {
-    api(project(":domain:lexical-item-details-source"))
+    api(project(":data:lexical-item-details-source:api"))
     implementation(project(":data:tatoeba"))
 }

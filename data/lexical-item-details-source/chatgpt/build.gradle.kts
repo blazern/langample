@@ -9,6 +9,6 @@ android {
 
 dependencies {
     implementation(libs.kotlinx.serialization.json)
-    api(project(":domain:lexical-item-details-source"))
+    api(project(":data:lexical-item-details-source:api"))
     implementation(project(":data:chatgpt"))
 }

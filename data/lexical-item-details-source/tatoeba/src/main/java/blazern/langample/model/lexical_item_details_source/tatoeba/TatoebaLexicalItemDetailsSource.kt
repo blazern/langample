@@ -5,8 +5,8 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.data.tatoeba.TatoebaClient
-import blazern.langample.domain.lexical_item_details_source.FutureLexicalItemDetails
-import blazern.langample.domain.lexical_item_details_source.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.FutureLexicalItemDetails
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -38,10 +38,12 @@ class TatoebaLexicalItemDetailsSource(
                 )))
             }
         }
-        return listOf(FutureLexicalItemDetails(
+        return listOf(
+            FutureLexicalItemDetails(
             details = translationsFlow,
             type = LexicalItemDetail.Type.EXAMPLE,
             sources = listOf(DataSource.TATOEBA),
-        ))
+        )
+        )
     }
 }
