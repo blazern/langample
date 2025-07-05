@@ -11,4 +11,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     api(project(":data:lexical-item-details-source:api"))
     implementation(project(":data:chatgpt"))
+    implementation(project(":core:utils"))
 }

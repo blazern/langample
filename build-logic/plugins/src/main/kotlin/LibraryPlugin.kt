@@ -59,6 +59,7 @@ open class LibraryPlugin : Plugin<Project> {
                     add("testImplementation", libs.findLibrary("junit").get())
                     add("testImplementation", libs.findLibrary("ktor-client-mock").get())
                     add("testImplementation", libs.findLibrary("mockk").get())
+                    add("testImplementation", libs.findLibrary("kotlinx-coroutines-test").get())
                     add("testImplementation", kotlin("test"))
                     add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
                 }

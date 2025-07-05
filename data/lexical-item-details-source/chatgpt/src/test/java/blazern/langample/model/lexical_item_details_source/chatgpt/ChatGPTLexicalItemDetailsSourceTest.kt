@@ -8,25 +8,21 @@ import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-
-import org.junit.Assert.*
 
 class ChatGPTLexicalItemDetailsSourceTest {
     private val chatGpt = mockk<ChatGPTClient>()
     private val source  = ChatGPTLexicalItemDetailsSource(chatGpt)
 
-    @Test
-    fun `good scenario`() = runBlocking {
-        val json = """
+    private val chatGptJson = """
             {
               "forms": "der Hund, -e",
               "explanation": "Der Hund ist ein Haustier.",
@@ -36,28 +32,33 @@ class ChatGPTLexicalItemDetailsSourceTest {
               ]
             }
         """.trimIndent()
-        coEvery { chatGpt.request(any()) } returns Right(json)
 
-        val futureDetails = source.request("dog", Lang.EN, Lang.DE)
+    @Test
+    fun `good scenario`() = runBlocking {
+        coEvery { chatGpt.request(any()) } returns Right(chatGptJson)
 
-        val explanation = futureDetails.single { it.type == LexicalItemDetail.Type.EXPLANATION }
-            .details.single().getOrNull()!! as LexicalItemDetail.Explanation
+        val details = source.request("dog", Lang.EN, Lang.DE)
+            .toList()
+            .map { it.getOrNull()!! }
+
+        val explanation = details
+            .filterIsInstance<LexicalItemDetail.Explanation>()
+            .single()
         assertEquals(
             LexicalItemDetail.Explanation("Der Hund ist ein Haustier.", DataSource.CHATGPT),
             explanation,
         )
 
-        val forms = futureDetails.single { it.type == LexicalItemDetail.Type.FORMS }
-            .details.single().getOrNull()!! as LexicalItemDetail.Forms
+        val forms = details
+            .filterIsInstance<LexicalItemDetail.Forms>()
+            .single()
         assertEquals(
             LexicalItemDetail.Forms("der Hund, -e", DataSource.CHATGPT),
             forms,
         )
 
-
-        val examples = futureDetails.single { it.type == LexicalItemDetail.Type.EXAMPLE }
-            .details.map { it.getOrNull()!! as LexicalItemDetail.Example }
-            .toList()
+        val examples = details
+            .filterIsInstance<LexicalItemDetail.Example>()
         val expectedSets = listOf(
             TranslationsSet(
                 Sentence("Dog", Lang.EN, DataSource.CHATGPT),
@@ -76,44 +77,25 @@ class ChatGPTLexicalItemDetailsSourceTest {
     }
 
     @Test
-    fun `IO error scenario`() = runBlocking {
-        val error = IOException("no network")
-        coEvery { chatGpt.request(any()) } returns Left(error)
+    fun `first IO error then good scenario`() = runBlocking {
+        // Bad
+        coEvery { chatGpt.request(any()) } returns Left(IOException("no network"))
+        val flow = source.request("dog", Lang.EN, Lang.DE)
+        val iter = FlowIterator(flow, this)
+        assertTrue(iter.next() is Left)
 
-        val futures = source.request("dog", Lang.EN, Lang.DE)
-
-        futures.forEach { future ->
-            val emissions = future.details.toList()
-            assertEquals(1, emissions.size)
-            assertTrue(emissions.first() is Left)
-            assertEquals(error, emissions.first().leftOrNull()!!)
-        }
+        coEvery { chatGpt.request(any()) } returns Right(chatGptJson)
+        assertTrue(iter.next() is Right)
+        iter.close()
     }
 
     @Test
     fun `malformed JSON`() = runBlocking {
         coEvery { chatGpt.request(any()) } returns Right("{ error }")
 
-        val futures = source.request("dog", Lang.EN, Lang.DE)
-
-        futures.forEach { future ->
-            val emissions = future.details.toList()
-            assertEquals(1, emissions.size)
-            assertTrue(emissions.first() is Left)
-        }
-    }
-
-    @Test
-    fun `upstream executes once for multiple subflows`() = runBlocking {
-        val json = """{ "forms":"x", "explanation":"x", "examples": [] }"""
-        coEvery { chatGpt.request(any()) } returns Right(json)
-
-        val futures = source.request("dog", Lang.EN, Lang.DE)
-        // Collect all flows, they should share the single result
-        futures.forEach {
-            it.details.toList()
-        }
-
-        coVerify(exactly = 1) { chatGpt.request(any()) }
+        val flow = source.request("dog", Lang.EN, Lang.DE)
+        val iter = FlowIterator(flow, this)
+        assertTrue(iter.next() is Left)
+        iter.close()
     }
 }

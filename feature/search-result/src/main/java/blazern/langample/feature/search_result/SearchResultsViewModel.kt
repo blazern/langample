@@ -10,9 +10,20 @@ import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetails
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.toClass
+import blazern.langample.feature.search_result.model.LexicalItemDetailState.Error
+import blazern.langample.feature.search_result.model.LexicalItemDetailState.Loaded
+import blazern.langample.feature.search_result.model.LexicalItemDetailState.Loading
+import blazern.langample.feature.search_result.model.SearchResultsState
+import blazern.langample.feature.search_result.model.add
+import blazern.langample.feature.search_result.model.remove
+import blazern.langample.feature.search_result.model.replaceWithError
+import blazern.langample.utils.FlowIterator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+
+private typealias LexicalItemDetailFlow = FlowIterator<Either<Exception, LexicalItemDetail>>
 
 internal class SearchResultsViewModel(
     startQuery: String,
@@ -20,7 +31,13 @@ internal class SearchResultsViewModel(
     private val langTo: Lang,
     private val dataSources: List<LexicalItemDetailsSource>,
 ) : ViewModel() {
-    private val _state = MutableStateFlow<SearchResultsState>(SearchResultsState.PerformingSearch)
+    private val loadingInProgress = mutableSetOf<DataSource>()
+    private val dataIters = mutableMapOf<DataSource, LexicalItemDetailFlow>()
+    private val sourceTypes = mutableMapOf<DataSource, List<LexicalItemDetail.Type>>()
+    // NOTE: if new fields and responsibilities are being added, extract the 3 fields above and
+    // a ton of related methods into a separate class.
+
+    private val _state = MutableStateFlow(SearchResultsState())
     val state: StateFlow<SearchResultsState> = _state
 
     init {
@@ -28,60 +45,31 @@ internal class SearchResultsViewModel(
     }
 
     private fun search(query: String) {
-        val futureResults = dataSources.map {
-            it.request(query, langFrom, langTo)
-        }.flatten()
-        for (futureResult in futureResults) {
-            viewModelScope.launch {
-                futureResult.details.collect {
-                    onNewLexicalDetail(it)
-                }
-            }
+        _state.value = SearchResultsState()
+        for (dataSource in dataSources) {
+            val source = dataSource.source
+            sourceTypes[source] = dataSource.types
+            val flow = dataSource.request(query, langFrom, langTo)
+            dataIters[source] = FlowIterator(flow, viewModelScope)
+            addLoadingsFor<LexicalItemDetail>(source)
         }
     }
 
-    private fun onNewLexicalDetail(lexicalDetailRes: Either<Exception, LexicalItemDetail>) {
-        val oldState = when (val state = _state.value) {
-            SearchResultsState.Error -> TODO()
-            SearchResultsState.PerformingSearch -> SearchResultsState.Results(
-                formsHtml = "",
-                formsSource = DataSource.CHATGPT,
-                explanation = "",
-                explanationSource = DataSource.CHATGPT,
-                examples = emptyList(),
-            )
-            is SearchResultsState.Results -> state
-        }
-
-        val lexicalDetail = lexicalDetailRes.fold(
-            {
-                _state.value = oldState.copy(
-                    formsHtml = it.toString(),
-                    explanation = it.toString(),
-                )
-                return
-            },
-            { it }
+    private fun <T : LexicalItemDetail> addLoadingsFor(source: DataSource) {
+        var newState = state.value.remove(
+            listOf(
+                Loading::class,
+                Error::class,
+            ),
+            source,
         )
-        _state.value = when (lexicalDetail) {
-            is LexicalItemDetail.Forms -> {
-                oldState.copy(
-                    formsHtml = lexicalDetail.text,
-                    formsSource = lexicalDetail.source,
-                )
-            }
-            is LexicalItemDetail.Explanation -> {
-                oldState.copy(
-                    explanation = lexicalDetail.text,
-                    explanationSource = lexicalDetail.source,
-                )
-            }
-            is LexicalItemDetail.Example -> {
-                oldState.copy(
-                    examples = oldState.examples + lexicalDetail.translationsSet
-                )
-            }
+        for (type in sourceTypes[source] ?: emptyList()) {
+            newState = newState.add(
+                type.toClass(),
+                Loading<T>(type, source)
+            )
         }
+        _state.value = newState
     }
 
     fun copyText(text: String, clipboard: Clipboard) {
@@ -90,5 +78,64 @@ internal class SearchResultsViewModel(
                 text, text
             )))
         }
+    }
+
+    fun <T : LexicalItemDetail> onLoadingDetailVisible(
+        loading: Loading<T>,
+    ) {
+        continueLoadingFor<T>(loading.source)
+    }
+
+    private fun <T : LexicalItemDetail> continueLoadingFor(
+        source: DataSource,
+    ) {
+        val iter = dataIters[source] ?: return
+        viewModelScope.launch {
+            if (loadingInProgress.contains(source) || iter.hasEnded()) {
+                return@launch
+            }
+            loadingInProgress.add(source)
+            addLoadingsFor<T>(source)
+            val next = iter.next()
+            if (next != null) {
+                onNextDetailResult<LexicalItemDetail>(next, source)
+            } else {
+                // The end
+                _state.value = _state.value.remove(
+                    listOf(Loading::class, Error::class),
+                    source
+                )
+            }
+            loadingInProgress.remove(source)
+        }
+    }
+
+    private fun <T : LexicalItemDetail> onNextDetailResult(
+        detailRes: Either<Exception, LexicalItemDetail>,
+        source: DataSource,
+    ) {
+        detailRes.fold(
+            {
+                _state.value = _state.value.replaceWithError(
+                    source,
+                    listOf(Loading::class, Error::class),
+                    { Error<T>(it, source) },
+                )
+            },
+            {
+                _state.value = _state.value
+                    .remove(
+                        listOf(Loading::class, Error::class),
+                        source,
+                    )
+                    .add(it::class, Loaded(it))
+                    .add(it.type.toClass(), Loading<LexicalItemDetail>(it.type, source),
+                )
+            }
+        )
+    }
+
+    fun <T : LexicalItemDetail> onFixErrorRequest(error: Error<T>) {
+        continueLoadingFor<T>(error.source)
     }
 }

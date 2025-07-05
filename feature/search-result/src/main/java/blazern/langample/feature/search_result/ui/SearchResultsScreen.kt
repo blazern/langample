@@ -13,9 +13,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import blazern.langample.core.strings.R
-import blazern.langample.feature.search_result.SearchResultsState
+import blazern.langample.feature.search_result.model.LexicalItemDetailState
+import blazern.langample.feature.search_result.model.SearchResultsState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -23,11 +25,14 @@ internal fun SearchResultsScreen(
     query: String,
     state: SearchResultsState,
     onTextCopy: (String, Clipboard)->Unit,
+    onLoadingDetailVisible: (LexicalItemDetailState.Loading<*>) -> Unit,
+    onFixErrorRequest: (LexicalItemDetailState.Error<*>) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copiedMsg = stringResource(R.string.general_copied_to_clipboard)
-    val onTextCopyWrapper = { text: String, clipboard: Clipboard ->
+    val clipboard = LocalClipboard.current
+    val onTextCopyWrapper = { text: String ->
         onTextCopy.invoke(text, clipboard)
         scope.launch {
             snackbarHostState.currentSnackbarData?.dismiss()
@@ -42,17 +47,13 @@ internal fun SearchResultsScreen(
         },
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
-        when (val state = state) {
-            SearchResultsState.PerformingSearch -> Loading()
-            SearchResultsState.Error -> TODO()
-            is SearchResultsState.Results -> {
-                FoundSearchResults(
-                    state = state,
-                    onTextCopy = onTextCopyWrapper,
-                    modifier = Modifier.padding(innerPadding),
-                )
-            }
-        }
+        FoundSearchResults(
+            state = state,
+            onTextCopy = onTextCopyWrapper,
+            onLoadingDetailVisible = onLoadingDetailVisible,
+            onFixErrorRequest = onFixErrorRequest,
+            modifier = Modifier.padding(innerPadding),
+        )
     }
 }
 

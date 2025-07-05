@@ -5,79 +5,49 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.data.chatgpt.ChatGPTClient
-import blazern.langample.data.lexical_item_details_source.api.FutureLexicalItemDetails
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import kotlin.concurrent.atomics.AtomicReference
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-@OptIn(ExperimentalAtomicApi::class)
 class ChatGPTLexicalItemDetailsSource(
     private val chatGPTClient: ChatGPTClient,
 ) : LexicalItemDetailsSource {
     override val source = DataSource.CHATGPT
+    override val types = listOf(
+        LexicalItemDetail.Type.FORMS,
+        LexicalItemDetail.Type.EXPLANATION,
+        LexicalItemDetail.Type.EXAMPLE,
+    )
 
     override fun request(
         query: String,
         langFrom: Lang,
         langTo: Lang
-    ): List<FutureLexicalItemDetails> {
-        val cache = AtomicReference<Either<Exception, ChatGPTResponse>?>(null)
-        val guard = Mutex()
-        suspend fun obtain(): Either<Exception, ChatGPTResponse> {
-            return guard.withLock {
-                cache.load() ?: run {
-                    val result = queryChatGPT(query, langFrom, langTo)
-                    cache.store(result)
-                    result
-                }
+    ): LexicalItemDetailsFlow {
+        return flow {
+            while (true) {
+                val result = queryChatGPT(query, langFrom, langTo)
+                result.fold(
+                    { emit(Left(it)) },
+                    {
+                        emit(Right(LexicalItemDetail.Forms(it.forms, source)))
+                        emit(Right(LexicalItemDetail.Explanation(it.explanation, source)))
+                        it.convertExamples(langFrom, langTo).forEach {
+                            emit(Right(LexicalItemDetail.Example(it, source)))
+                        }
+                        return@flow
+                    }
+                )
             }
         }
-
-        val explanation = flow {
-            emit(obtain().map { LexicalItemDetail.Explanation(it.explanation, source) })
-        }
-        val forms = flow {
-            emit(obtain().map { LexicalItemDetail.Forms(it.forms, source) })
-        }
-        val examples: Flow<Either<Exception, LexicalItemDetail>> = flow {
-            obtain().map { it.convertExamples(langFrom, langTo) }.fold(
-                { emit(Left(it)) },
-                {
-                    it.forEach {
-                        emit(Right(LexicalItemDetail.Example(it, source)))
-                    }
-                }
-            )
-        }
-        return listOf(
-            FutureLexicalItemDetails(
-                explanation,
-                LexicalItemDetail.Type.EXPLANATION,
-                source,
-            ),
-            FutureLexicalItemDetails(
-                forms,
-                LexicalItemDetail.Type.FORMS,
-                source,
-            ),
-            FutureLexicalItemDetails(
-                examples,
-                LexicalItemDetail.Type.EXAMPLE,
-                source,
-            ),
-        )
     }
 
     private suspend fun queryChatGPT(

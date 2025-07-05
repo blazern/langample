@@ -24,6 +24,12 @@ fun SearchResultsRoute(
         uiState,
         onTextCopy = { text, clipboard ->
             viewModel.copyText(text, clipboard)
+        },
+        onLoadingDetailVisible = {
+            viewModel.onLoadingDetailVisible(it)
+        },
+        onFixErrorRequest = {
+            viewModel.onFixErrorRequest(it)
         }
     )
 }

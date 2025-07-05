@@ -9,10 +9,14 @@ import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -22,33 +26,31 @@ class TatoebaLexicalItemDetailsSourceTest {
     private val tatoeba = mockk<TatoebaClient>()
     private val source = TatoebaLexicalItemDetailsSource(tatoeba)
 
+    private val translationsSets = listOf(
+        TranslationsSet(
+            original = Sentence("Hello", Lang.EN, DataSource.TATOEBA),
+            translations = listOf(Sentence("Hallo", Lang.DE, DataSource.TATOEBA))
+        ),
+        TranslationsSet(
+            original = Sentence("Good morning", Lang.EN, DataSource.TATOEBA),
+            translations = listOf(Sentence("Guten Morgen", Lang.DE, DataSource.TATOEBA))
+        ),
+    )
+
+    @Test
+    fun `source and types`() = runBlocking {
+        assertEquals(DataSource.TATOEBA, source.source)
+        assertEquals(listOf(LexicalItemDetail.Type.EXAMPLE), source.types)
+    }
+
     @Test
     fun `good scenario`() = runBlocking {
-        val translationsSets = listOf(
-            TranslationsSet(
-                original = Sentence("Hello", Lang.EN, DataSource.TATOEBA),
-                translations = listOf(Sentence("Hallo", Lang.DE, DataSource.TATOEBA))
-            ),
-            TranslationsSet(
-                original = Sentence("Good morning", Lang.EN, DataSource.TATOEBA),
-                translations = listOf(Sentence("Guten Morgen", Lang.DE, DataSource.TATOEBA))
-            ),
-        )
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE) } returns Right(translationsSets)
 
-        val futureResults = source.request("hello", Lang.EN, Lang.DE).single()
+        val results = source.request("hello", Lang.EN, Lang.DE)
+            .toList()
+            .map { it.getOrNull()!! }
 
-        assertEquals(
-            LexicalItemDetail.Type.EXAMPLE,
-            futureResults.type,
-        )
-        assertEquals(
-            DataSource.TATOEBA,
-            futureResults.source,
-        )
-
-        val results = futureResults.details.toList()
-            .map { it.getOrElse { throw it } }
         val expected = translationsSets.map {
             LexicalItemDetail.Example(
                 it,
@@ -59,11 +61,16 @@ class TatoebaLexicalItemDetailsSourceTest {
     }
 
     @Test
-    fun `bad scenario`() = runBlocking {
+    fun `bad and then good scenario`() = runTest {
+        // Bad
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE) } returns Left(IOException())
-        val futureResults = source.request("hello", Lang.EN, Lang.DE).single()
-        val results = futureResults.details.toList()
-        assertEquals(1, results.size)
-        assertTrue { results.first() is Left }
+        val flow = source.request("hello", Lang.EN, Lang.DE)
+        val iter = FlowIterator(flow, this)
+        assertTrue { iter.next() is Left }
+
+        // Good
+        coEvery { tatoeba.search("hello", Lang.EN, Lang.DE) } returns Right(translationsSets)
+        assertTrue { iter.next() is Right }
+        iter.close()
     }
 }

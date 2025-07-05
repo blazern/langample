@@ -1,5 +1,7 @@
 package blazern.langample.domain.model
 
+import kotlin.reflect.KClass
+
 sealed class LexicalItemDetail(
     val type: Type,
     open val source: DataSource,
@@ -23,5 +25,13 @@ sealed class LexicalItemDetail(
         FORMS,
         EXPLANATION,
         EXAMPLE,
+    }
+}
+
+fun LexicalItemDetail.Type.toClass(): KClass<out LexicalItemDetail> {
+    return when (this) {
+        LexicalItemDetail.Type.FORMS -> LexicalItemDetail.Forms::class
+        LexicalItemDetail.Type.EXPLANATION -> LexicalItemDetail.Explanation::class
+        LexicalItemDetail.Type.EXAMPLE -> LexicalItemDetail.Example::class
     }
 }

@@ -1,12 +1,10 @@
 package blazern.langample.model.lexical_item_details_source.tatoeba
 
-import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.getOrElse
-import blazern.langample.data.tatoeba.TatoebaClient
-import blazern.langample.data.lexical_item_details_source.api.FutureLexicalItemDetails
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.tatoeba.TatoebaClient
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -16,35 +14,38 @@ class TatoebaLexicalItemDetailsSource(
     private val tatoebaClient: TatoebaClient,
 ) : LexicalItemDetailsSource {
     override val source = DataSource.TATOEBA
+    override val types = listOf(LexicalItemDetail.Type.EXAMPLE)
 
     override fun request(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): List<FutureLexicalItemDetails> {
-        val translationsFlow = flow<Either<Exception, LexicalItemDetail>> {
-            val translationsSetsResult = tatoebaClient.search(
-                query = query,
-                langFrom = langFrom,
-                langTo = langTo,
-            )
+    ): LexicalItemDetailsFlow {
+        return flow {
+            while (true) {
+                val translationsSetsResult = tatoebaClient.search(
+                    query = query,
+                    langFrom = langFrom,
+                    langTo = langTo,
+                )
 
-            val translationsSets = translationsSetsResult.getOrElse {
-                emit(Left(it))
-                return@flow
-            }
-            translationsSets.forEach {
-                emit(Right(LexicalItemDetail.Example(
-                    translationsSet = it,
-                    source = source,
-                )))
+                translationsSetsResult.fold(
+                    { emit(Left(it)) },
+                    { translationsSets ->
+                        translationsSets.forEach {
+                            emit(
+                                Right(
+                                    LexicalItemDetail.Example(
+                                        translationsSet = it,
+                                        source = source,
+                                    )
+                                )
+                            )
+                        }
+                        return@flow
+                    }
+                )
             }
         }
-        return listOf(
-            FutureLexicalItemDetails(
-            details = translationsFlow,
-            type = LexicalItemDetail.Type.EXAMPLE,
-            source = source,
-        ))
     }
 }
