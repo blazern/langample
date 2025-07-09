@@ -9,7 +9,6 @@ internal sealed class LexicalItemDetailState<T : LexicalItemDetail>(
     data class Loading<T : LexicalItemDetail>(
         val type: LexicalItemDetail.Type,
         override val source: DataSource,
-        val id: Any = Any(),
     ) : LexicalItemDetailState<T>(source)
 
     data class Loaded<T : LexicalItemDetail>(

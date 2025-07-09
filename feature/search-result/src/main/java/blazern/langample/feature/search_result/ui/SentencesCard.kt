@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import blazern.langample.domain.model.DataSource
@@ -55,6 +56,7 @@ internal fun SentencesCard(
                     Text(
                         sentenceData.sentence.text,
                         color = sentenceData.textColor,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.padding(
                             horizontal = 20.dp,
                             vertical = 14.dp,

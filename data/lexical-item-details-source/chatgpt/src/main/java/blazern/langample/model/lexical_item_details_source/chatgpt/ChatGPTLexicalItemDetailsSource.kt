@@ -128,13 +128,13 @@ private fun ChatGPTResponse.convertExamples(
     return examples.map {
         TranslationsSet(
             original = Sentence(
-                it.split("|").first(),
+                it.split("|").first().trim(),
                 langFrom,
                 DataSource.CHATGPT,
             ),
             translations = listOf(
                 Sentence(
-                    it.split("|").last(),
+                    it.split("|").last().trim(),
                     langTo,
                     DataSource.CHATGPT,
                 )

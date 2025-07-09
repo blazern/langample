@@ -115,7 +115,7 @@ private fun BlockWithText(
         Text(
             text,
             color = textColor,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
         )
         SourceLabel(source, textColor)
     }
@@ -157,8 +157,8 @@ private fun ExplanationBlock(
 ) {
     BlockWithText(
         explanation.text,
-        MaterialTheme.colorScheme.secondary,
-        MaterialTheme.colorScheme.onSecondary,
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.onPrimary,
         explanation.source,
         onTextCopy,
     )

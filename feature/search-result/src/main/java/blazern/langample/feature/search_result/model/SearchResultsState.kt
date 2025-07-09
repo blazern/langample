@@ -6,6 +6,7 @@ import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Example
 import blazern.langample.domain.model.LexicalItemDetail.Explanation
 import blazern.langample.domain.model.LexicalItemDetail.Forms
+import blazern.langample.domain.model.toType
 import kotlin.reflect.KClass
 
 @Immutable
@@ -93,24 +94,22 @@ private fun SearchResultsState.copyWithNewDetails(
     clazz: KClass<out LexicalItemDetail>,
     updatedDetails: List<LexicalItemDetailState<out LexicalItemDetail>>,
 ): SearchResultsState {
-    return when (clazz) {
-        Forms::class ->
+    return when (LexicalItemDetail.toType(clazz)) {
+        LexicalItemDetail.Type.FORMS ->
             copy(forms = updatedDetails as List<LexicalItemDetailState<Forms>>)
-        Explanation::class ->
+        LexicalItemDetail.Type.EXPLANATION ->
             copy(explanations = updatedDetails as List<LexicalItemDetailState<Explanation>>)
-        Example::class ->
+        LexicalItemDetail.Type.EXAMPLE ->
             copy(examples = updatedDetails as List<LexicalItemDetailState<Example>>)
-        else -> throw Error("Unhandled class: $clazz")
     }
 }
 
 private fun SearchResultsState.detailsOfType(
     clazz: KClass<out LexicalItemDetail>,
 ): List<LexicalItemDetailState<out LexicalItemDetail>> {
-    return when (clazz) {
-        Forms::class -> forms
-        Explanation::class -> explanations
-        Example::class -> examples
-        else -> throw Error("Unhandled class: $clazz")
+    return when (LexicalItemDetail.toType(clazz)) {
+        LexicalItemDetail.Type.FORMS -> forms
+        LexicalItemDetail.Type.EXPLANATION -> explanations
+        LexicalItemDetail.Type.EXAMPLE -> examples
     }
 }
