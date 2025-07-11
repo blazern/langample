@@ -6,6 +6,7 @@ import blazern.langample.core.strings.R
 enum class DataSource {
     TATOEBA,
     CHATGPT,
+    KAIKKI,
 }
 
 val DataSource.strRsc: Int
@@ -14,5 +15,6 @@ val DataSource.strRsc: Int
         return when (this) {
             DataSource.TATOEBA -> R.string.general_data_source_tatoeba
             DataSource.CHATGPT -> R.string.general_data_source_chatgpt
+            DataSource.KAIKKI -> R.string.general_data_source_kaikki
         }
     }

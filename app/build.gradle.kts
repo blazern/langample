@@ -65,10 +65,13 @@ dependencies {
     implementation(project(":feature:search-result"))
     implementation(project(":core:ktor"))
     implementation(project(":domain:model"))
+    implementation(project(":domain:settings"))
     implementation(project(":data:tatoeba"))
     implementation(project(":data:chatgpt"))
+    implementation(project(":data:kaikki"))
     implementation(project(":data:lexical-item-details-source:tatoeba"))
     implementation(project(":data:lexical-item-details-source:chatgpt"))
+    implementation(project(":data:lexical-item-details-source:kaikki"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

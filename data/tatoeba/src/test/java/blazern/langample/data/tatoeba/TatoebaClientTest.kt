@@ -111,7 +111,7 @@ class TatoebaClientTest {
     }
 
     @Test
-    fun `exception`() = runBlocking {
+    fun exception() = runBlocking {
         val e = IOException("no internet")
         setResponse(e)
 

@@ -9,18 +9,25 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 class KtorClientHolder(
     engine: HttpClientEngine = OkHttp.create(),
 ) {
+    private val jsonConfig = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+    }
+
     val client = HttpClient(engine) {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-            })
+            json(jsonConfig)
+            json(
+                json = jsonConfig,
+                contentType = ContentType.Application.OctetStream
+            )
         }
         HttpResponseValidator {
             handleResponseExceptionWithRequest { exception, request ->

@@ -9,4 +9,5 @@
 
     <string name="general_data_source_tatoeba">Tatoeba</string>
     <string name="general_data_source_chatgpt">ChatGPT</string>
+    <string name="general_data_source_kaikki">kaikki (Wiktionary)</string>
 </resources>

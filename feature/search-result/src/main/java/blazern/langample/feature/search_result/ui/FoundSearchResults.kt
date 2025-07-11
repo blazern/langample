@@ -54,7 +54,7 @@ internal fun FoundSearchResults(
                     }
                     else -> {
                         val example = state.examples[index - state.forms.size - state.explanations.size]
-                        Box(modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp)) {
                             ListItem(
                                 example,
                                 callbacks,
