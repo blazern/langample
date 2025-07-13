@@ -6,12 +6,16 @@ import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Example
 import blazern.langample.domain.model.LexicalItemDetail.Explanation
 import blazern.langample.domain.model.LexicalItemDetail.Forms
+import blazern.langample.domain.model.LexicalItemDetail.Synonyms
+import blazern.langample.domain.model.LexicalItemDetail.WordTranslations
 import blazern.langample.domain.model.toType
 import kotlin.reflect.KClass
 
 @Immutable
 internal data class SearchResultsState(
     val forms: List<LexicalItemDetailState<Forms>> = emptyList(),
+    val wordTranslations: List<LexicalItemDetailState<WordTranslations>> = emptyList(),
+    val synonyms: List<LexicalItemDetailState<Synonyms>> = emptyList(),
     val explanations: List<LexicalItemDetailState<Explanation>> = emptyList(),
     val examples: List<LexicalItemDetailState<Example>> = emptyList(),
 )
@@ -43,6 +47,8 @@ internal fun SearchResultsState.remove(
 ): SearchResultsState {
     return copy(
         forms = forms.filterNot { it.javaClass == clazz.java && it.source == source },
+        wordTranslations = wordTranslations.filterNot { it.javaClass == clazz.java && it.source == source },
+        synonyms = synonyms.filterNot { it.javaClass == clazz.java && it.source == source },
         explanations = explanations.filterNot { it.javaClass == clazz.java && it.source == source },
         examples = examples.filterNot { it.javaClass == clazz.java && it.source == source },
     )
@@ -84,6 +90,8 @@ private fun SearchResultsState.replace(
 
     return copy(
         forms = forms.replaced(),
+        wordTranslations = wordTranslations.replaced(),
+        synonyms = synonyms.replaced(),
         explanations = explanations.replaced(),
         examples = examples.replaced(),
     )
@@ -97,6 +105,10 @@ private fun SearchResultsState.copyWithNewDetails(
     return when (LexicalItemDetail.toType(clazz)) {
         LexicalItemDetail.Type.FORMS ->
             copy(forms = updatedDetails as List<LexicalItemDetailState<Forms>>)
+        LexicalItemDetail.Type.WORD_TRANSLATIONS ->
+            copy(wordTranslations = updatedDetails as List<LexicalItemDetailState<WordTranslations>>)
+        LexicalItemDetail.Type.SYNONYMS ->
+            copy(synonyms = updatedDetails as List<LexicalItemDetailState<Synonyms>>)
         LexicalItemDetail.Type.EXPLANATION ->
             copy(explanations = updatedDetails as List<LexicalItemDetailState<Explanation>>)
         LexicalItemDetail.Type.EXAMPLE ->
@@ -109,6 +121,8 @@ private fun SearchResultsState.detailsOfType(
 ): List<LexicalItemDetailState<out LexicalItemDetail>> {
     return when (LexicalItemDetail.toType(clazz)) {
         LexicalItemDetail.Type.FORMS -> forms
+        LexicalItemDetail.Type.WORD_TRANSLATIONS -> wordTranslations
+        LexicalItemDetail.Type.SYNONYMS -> synonyms
         LexicalItemDetail.Type.EXPLANATION -> explanations
         LexicalItemDetail.Type.EXAMPLE -> examples
     }

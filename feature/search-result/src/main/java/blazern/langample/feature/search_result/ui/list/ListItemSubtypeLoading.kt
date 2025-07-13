@@ -12,19 +12,16 @@ import blazern.langample.feature.search_result.model.LexicalItemDetailState
 
 @Composable
 internal inline fun <reified D : LexicalItemDetail> ListItemSubtypeLoading(
-    loading: LexicalItemDetailState.Loading<*>,
+    loading: LexicalItemDetailState.Loading<D>,
     callbacks: LexicalItemDetailCallbacks,
     modifier: Modifier = Modifier,
 ) {
     callbacks.onLoadingDetailVisible(loading)
     when (LexicalItemDetail.toType(D::class)) {
-        LexicalItemDetail.Type.FORMS -> FrameForms(loading) {
-            LoadingContent(modifier)
-        }
-        LexicalItemDetail.Type.EXPLANATION -> FrameForms(loading) {
-            LoadingContent(modifier)
-        }
         LexicalItemDetail.Type.EXAMPLE -> FrameExample(loading) {
+            LoadingContent(modifier)
+        }
+        else -> FrameMain(loading) {
             LoadingContent(modifier)
         }
     }

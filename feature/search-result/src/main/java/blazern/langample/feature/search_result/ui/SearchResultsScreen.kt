@@ -75,7 +75,7 @@ internal fun SearchResultsScreen(
             ) {
                 FlowRow {
                     Text(
-                        stringResource(R.string.search_results_title),
+                        stringResource(R.string.search_results_title) + " ",
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onPrimary,

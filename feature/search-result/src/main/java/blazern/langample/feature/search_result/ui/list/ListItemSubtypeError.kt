@@ -14,18 +14,15 @@ import blazern.langample.feature.search_result.model.LexicalItemDetailState
 
 @Composable
 internal inline fun <reified D : LexicalItemDetail> ListItemSubtypeError(
-    error: LexicalItemDetailState.Error<*>,
+    error: LexicalItemDetailState.Error<D>,
     callbacks: LexicalItemDetailCallbacks,
     modifier: Modifier = Modifier,
 ) {
     when (LexicalItemDetail.toType(D::class)) {
-        LexicalItemDetail.Type.FORMS -> FrameForms(error) {
-            ErrorContent(error, it, callbacks, modifier)
-        }
-        LexicalItemDetail.Type.EXPLANATION -> FrameForms(error) {
-            ErrorContent(error, it, callbacks, modifier)
-        }
         LexicalItemDetail.Type.EXAMPLE -> FrameExample(error) {
+            ErrorContent(error, it, callbacks, modifier)
+        }
+        else -> FrameMain(error) {
             ErrorContent(error, it, callbacks, modifier)
         }
     }

@@ -14,7 +14,7 @@ internal inline fun <reified D : LexicalItemDetail> ListItemSubtypeLoaded(
 ) {
     when (LexicalItemDetail.toType(D::class)) {
         LexicalItemDetail.Type.FORMS -> {
-            FrameForms(loaded) { textColor ->
+            FrameMain(loaded) { textColor ->
                 ListItemSubtypeLoadedForms(
                     loaded.detail as LexicalItemDetail.Forms,
                     textColor,
@@ -23,8 +23,28 @@ internal inline fun <reified D : LexicalItemDetail> ListItemSubtypeLoaded(
                 )
             }
         }
+        LexicalItemDetail.Type.WORD_TRANSLATIONS -> {
+            FrameMain(loaded) { textColor ->
+                ListItemSubtypeLoadedWordTranslations(
+                    loaded.detail as LexicalItemDetail.WordTranslations,
+                    textColor,
+                    callbacks,
+                    modifier,
+                )
+            }
+        }
+        LexicalItemDetail.Type.SYNONYMS -> {
+            FrameMain(loaded) { textColor ->
+                ListItemSubtypeLoadedSynonyms(
+                    loaded.detail as LexicalItemDetail.Synonyms,
+                    textColor,
+                    callbacks,
+                    modifier,
+                )
+            }
+        }
         LexicalItemDetail.Type.EXPLANATION -> {
-            FrameForms(loaded) { textColor ->
+            FrameMain(loaded) { textColor ->
                 ListItemSubtypeLoadedExplanation(
                     loaded.detail as LexicalItemDetail.Explanation,
                     textColor,

@@ -32,36 +32,42 @@ internal fun FoundSearchResults(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
-        val size = state.forms.size + state.explanations.size + state.examples.size
         LazyColumn {
-            items(size) { index ->
-                when {
-                    index < state.forms.size -> {
-                        val forms = state.forms[index]
-                        ListItem(
-                            forms,
-                            callbacks,
-                            Modifier.fillMaxWidth(),
-                        )
-                    }
-                    index < state.forms.size + state.explanations.size -> {
-                        val explanation = state.explanations[index - state.forms.size]
-                        ListItem(
-                            explanation,
-                            callbacks,
-                            Modifier.fillMaxWidth(),
-                        )
-                    }
-                    else -> {
-                        val example = state.examples[index - state.forms.size - state.explanations.size]
-                        Box(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp)) {
-                            ListItem(
-                                example,
-                                callbacks,
-                                Modifier.fillMaxWidth(),
-                            )
-                        }
-                    }
+            items(state.forms.size) { index ->
+                ListItem(
+                    state.forms[index],
+                    callbacks,
+                    Modifier.fillMaxWidth(),
+                )
+            }
+            items(state.wordTranslations.size) { index ->
+                ListItem(
+                    state.wordTranslations[index],
+                    callbacks,
+                    Modifier.fillMaxWidth(),
+                )
+            }
+            items(state.synonyms.size) { index ->
+                ListItem(
+                    state.synonyms[index],
+                    callbacks,
+                    Modifier.fillMaxWidth(),
+                )
+            }
+            items(state.explanations.size) { index ->
+                ListItem(
+                    state.explanations[index],
+                    callbacks,
+                    Modifier.fillMaxWidth(),
+                )
+            }
+            items(state.examples.size) { index ->
+                Box(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 16.dp)) {
+                    ListItem(
+                        state.examples[index],
+                        callbacks,
+                        Modifier.fillMaxWidth(),
+                    )
                 }
             }
         }

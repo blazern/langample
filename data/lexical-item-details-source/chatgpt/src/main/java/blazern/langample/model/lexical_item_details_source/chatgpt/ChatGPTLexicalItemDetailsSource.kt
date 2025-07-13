@@ -10,6 +10,7 @@ import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetails
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.LexicalItemDetail.WordTranslations
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
 import kotlinx.coroutines.flow.flow
@@ -23,6 +24,8 @@ class ChatGPTLexicalItemDetailsSource(
     override val source = DataSource.CHATGPT
     override val types = listOf(
         LexicalItemDetail.Type.FORMS,
+        LexicalItemDetail.Type.WORD_TRANSLATIONS,
+        LexicalItemDetail.Type.SYNONYMS,
         LexicalItemDetail.Type.EXPLANATION,
         LexicalItemDetail.Type.EXAMPLE,
     )
@@ -39,6 +42,24 @@ class ChatGPTLexicalItemDetailsSource(
                     { emit(Left(it)) },
                     {
                         emit(Right(LexicalItemDetail.Forms(it.forms, source)))
+                        emit(Right(WordTranslations(
+                            TranslationsSet(
+                                Sentence(query, langFrom, source),
+                                it.translations.map {
+                                    Sentence(it, langTo, source)
+                                }
+                            ),
+                            source,
+                        )))
+                        emit(Right(LexicalItemDetail.Synonyms(
+                            TranslationsSet(
+                                Sentence(query, langFrom, source),
+                                it.synonyms.map {
+                                    Sentence(it, langFrom, source)
+                                }
+                            ),
+                            source,
+                        )))
                         emit(Right(LexicalItemDetail.Explanation(it.explanation, source)))
                         it.convertExamples(langFrom, langTo).forEach {
                             emit(Right(LexicalItemDetail.Example(it, source)))
@@ -94,11 +115,15 @@ you are called from a language learning app, your goal is to
 generate a reply in next format:
 {
     "forms": "<FORMS>",
+    "translations": ["<TRANSLATION>", "<TRANSLATION>", "<TRANSLATION>"],
+    "synonyms": ["<SYNONYM>", "<SYNONYM>", "<SYNONYM>"],
     "explanation": "<EXPLANATION_SOURCE_LANG>",
     "examples": [
         "<EXAMPLE>",
         "<EXAMPLE>",
         "<EXAMPLE>",
+        "<EXAMPLE>",
+        "<EXAMPLE>"
     ]
 }
 The reply must explain next word: $query
@@ -106,9 +131,12 @@ Source lang: ${langFrom.iso2}
 Target lang: ${langTo.iso2}
 Placeholders
 <FORMS>: $formsExplanation
+<TRANSLATION>: a translation into ${langTo.iso2}
+<SYNONYM>: a synonym in ${langFrom.iso2}
 <EXPLANATION_SOURCE_LANG>: short (2-3 sentences) explanation of the word in ${langTo.iso2}
 <EXAMPLE>: example sentence ${langFrom.iso2} | example sentence ${langTo.iso2}
 Where "|" is a required delimiter, example sentences must be short.
+Translations and synonyms may contain 1-6 entries.
             """.trimIndent()
         }
     }
@@ -117,6 +145,8 @@ Where "|" is a required delimiter, example sentences must be short.
 @Serializable
 private class ChatGPTResponse(
     val forms: String,
+    val translations: List<String>,
+    val synonyms: List<String>,
     val explanation: String,
     val examples: List<String>,
 )
@@ -129,13 +159,13 @@ private fun ChatGPTResponse.convertExamples(
         TranslationsSet(
             original = Sentence(
                 it.split("|").first().trim(),
-                langFrom,
+                langTo,
                 DataSource.CHATGPT,
             ),
             translations = listOf(
                 Sentence(
                     it.split("|").last().trim(),
-                    langTo,
+                    langFrom,
                     DataSource.CHATGPT,
                 )
             )

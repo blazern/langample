@@ -69,9 +69,11 @@ dependencies {
     implementation(project(":data:tatoeba"))
     implementation(project(":data:chatgpt"))
     implementation(project(":data:kaikki"))
+    implementation(project(":data:panlex"))
     implementation(project(":data:lexical-item-details-source:tatoeba"))
     implementation(project(":data:lexical-item-details-source:chatgpt"))
     implementation(project(":data:lexical-item-details-source:kaikki"))
+    implementation(project(":data:lexical-item-details-source:panlex"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

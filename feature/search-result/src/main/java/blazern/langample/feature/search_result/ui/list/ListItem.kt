@@ -30,9 +30,9 @@ internal inline fun <reified D : LexicalItemDetail> ListItem(
     modifier: Modifier = Modifier,
 ) {
     when (detailState) {
-        is Loading<*> -> ListItemSubtypeLoading<D>(detailState, callbacks, modifier)
+        is Loading<*> -> ListItemSubtypeLoading<D>(detailState as Loading<D>, callbacks, modifier)
         is Loaded<*> -> ListItemSubtypeLoaded<D>(detailState as Loaded<D>, callbacks, modifier)
-        is Error<*> -> ListItemSubtypeError<D>(detailState, callbacks, modifier)
+        is Error<*> -> ListItemSubtypeError<D>(detailState as Error<D>, callbacks, modifier)
     }
 }
 

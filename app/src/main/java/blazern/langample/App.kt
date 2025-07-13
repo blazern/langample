@@ -7,6 +7,8 @@ import blazern.langample.data.kaikki.di.kaikkiModule
 import blazern.langample.data.tatoeba.di.tatoebaModule
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
+import blazern.langample.data.panlex.di.panLexModule
 import blazern.langample.domain.settings.di.settingsModule
 import blazern.langample.feature.search_result.di.searchResultModules
 import blazern.langample.model.lexical_item_details_source.chatgpt.ChatGPTLexicalItemDetailsSource
@@ -28,6 +30,7 @@ class App : Application() {
                 tatoebaModule(),
                 chatgptModule(),
                 kaikkiModule(),
+                panLexModule(),
                 LexicalItemDetailsSources,
             )
         }
@@ -51,6 +54,12 @@ private val LexicalItemDetailsSources = module {
         KaikkiLexicalItemDetailsSource(
             kaikkiClient = get(),
             settings = get(),
+        )
+    }.bind(LexicalItemDetailsSource::class)
+
+    single {
+        PanLexLexicalItemDetailsSource(
+            panLexClient = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 }
