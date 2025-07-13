@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 3
+    groups:
+      hilt:
+        patterns:
+          - "com.google.dagger:*"
+          - "androidx.hilt:*"
+      kotlin:
+        patterns:
+          - "androidx.compose.compiler:compiler"
+          - "org.jetbrains.kotlin*"
