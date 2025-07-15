@@ -8,7 +8,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.core)
+
     api(project(":data:lexical-item-details-source:api"))
     implementation(project(":data:chatgpt"))
     implementation(project(":core:utils"))
