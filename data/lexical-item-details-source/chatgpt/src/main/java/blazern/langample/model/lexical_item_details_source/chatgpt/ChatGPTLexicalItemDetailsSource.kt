@@ -16,6 +16,7 @@ import blazern.langample.domain.model.TranslationsSet
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import io.ktor.serialization.JsonConvertException
 import kotlinx.serialization.json.Json
 
 class ChatGPTLexicalItemDetailsSource(
@@ -88,6 +89,8 @@ class ChatGPTLexicalItemDetailsSource(
         val response: ChatGPTResponse = try {
             Json.decodeFromString(responseText)
         } catch (e: SerializationException) {
+            return Left(e)
+        } catch (e: JsonConvertException) {
             return Left(e)
         }
         return Right(response)

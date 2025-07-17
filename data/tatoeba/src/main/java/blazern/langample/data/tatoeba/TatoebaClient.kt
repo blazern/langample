@@ -1,16 +1,15 @@
 package blazern.langample.data.tatoeba
 
 import arrow.core.Either
-import blazern.langample.domain.model.Lang
 import blazern.langample.core.ktor.KtorClientHolder
-import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.data.tatoeba.model.api.ApiResponse
 import blazern.langample.domain.model.DataSource
+import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.Sentence
+import blazern.langample.domain.model.TranslationsSet
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import kotlinx.io.IOException
 
 class TatoebaClient(
     private val ktorClientHolder: KtorClientHolder,
@@ -19,7 +18,7 @@ class TatoebaClient(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): Either<IOException, List<TranslationsSet>> {
+    ): Either<Exception, List<TranslationsSet>> {
         val url = "https://tatoeba.org/en/api_v0/search"
         val response: ApiResponse = try {
             ktorClientHolder.client.get(url) {
@@ -30,7 +29,7 @@ class TatoebaClient(
                 parameter("trans_filter", "limit")
                 parameter("trans_link", "direct")
             }.body()
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             return Either.Left(e)
         }
 

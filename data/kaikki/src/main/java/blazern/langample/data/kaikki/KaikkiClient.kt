@@ -9,8 +9,6 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 class KaikkiClient(
@@ -36,9 +34,7 @@ class KaikkiClient(
                     .map { json.decodeFromString<Entry>(it) }
                     .toList()
                 Either.Right(entries)
-            } catch (e: IOException) {
-                Either.Left(e)
-            } catch (e: SerializationException) {
+            } catch (e: Exception) {
                 Either.Left(e)
             }
         }

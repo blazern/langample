@@ -30,13 +30,7 @@ class PanLexClient(
     ): Either<Exception, WordData> {
         return try {
             Either.Right(queryForWordData(query, langFrom, langsTo))
-        } catch (e: IOException) {
-            Either.Left(e)
-        } catch (e: SerializationException) {
-            Either.Left(e)
-        } catch (e: JsonConvertException) {
-            Either.Left(e)
-        } catch (e: IllegalStateException) {
+        } catch (e: Exception) {
             Either.Left(e)
         }
     }
