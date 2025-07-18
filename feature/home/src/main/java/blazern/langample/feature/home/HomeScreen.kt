@@ -1,11 +1,16 @@
 package blazern.langample.feature.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,12 +44,22 @@ fun HomeScreen(onSearch: (query: String)->Unit) {
             SearchBar(
                 query,
                 onQueryChange = { query = it },
-                onSearch = { onSearch(query) },
+                onSearch = { onSearch(processQuery(query)) },
                 placeholder = { Text(stringResource(R.string.home_input_hint)) },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        query = ""
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "",
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(
-                onClick = { onSearch(query) },
+                onClick = { onSearch(processQuery(query)) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(R.string.home_btn_search))
@@ -52,6 +67,8 @@ fun HomeScreen(onSearch: (query: String)->Unit) {
         }
     }
 }
+
+private fun processQuery(query: String) = query.trim()
 
 @PreviewScreenSizes
 @Preview(device = PIXEL_3A_XL, name = "400x500", heightDp = 400, widthDp = 500)
