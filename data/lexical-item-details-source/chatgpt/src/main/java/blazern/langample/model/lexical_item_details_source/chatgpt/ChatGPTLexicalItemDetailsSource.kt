@@ -130,14 +130,14 @@ generate a reply in next format:
     ]
 }
 The reply must explain next word: $query
-Source lang: ${langFrom.iso2}
-Target lang: ${langTo.iso2}
+Source lang: ${langFrom.iso3}
+Target lang: ${langTo.iso3}
 Placeholders
 <FORMS>: $formsExplanation
-<TRANSLATION>: a translation into ${langTo.iso2}
-<SYNONYM>: a synonym in ${langFrom.iso2}
-<EXPLANATION_SOURCE_LANG>: short (2-3 sentences) explanation of the word in ${langTo.iso2}
-<EXAMPLE>: example sentence ${langFrom.iso2} | example sentence ${langTo.iso2}
+<TRANSLATION>: a translation into ${langTo.iso3}
+<SYNONYM>: a synonym in ${langFrom.iso3}
+<EXPLANATION_SOURCE_LANG>: short (2-3 sentences) explanation of the word, lang: ${langTo.iso3}
+<EXAMPLE>: example sentence ${langFrom.iso3} | example sentence ${langTo.iso3}
 Where "|" is a required delimiter, example sentences must be short.
 Translations and synonyms may contain 1-6 entries.
             """.trimIndent()

@@ -7,6 +7,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":domain:model"))
     implementation(project(":core:ui:theme"))
     implementation(project(":core:ui:searchbar"))
+    implementation(project(":domain:settings"))
 }

@@ -5,6 +5,8 @@ import org.koin.dsl.module
 
 fun settingsModule() = module {
     single {
-        SettingsRepository()
+        SettingsRepository(
+            context = get(),
+        )
     }
 }

@@ -1,4 +1,4 @@
-package blazern.langample.feature.search_result
+package blazern.langample.feature.search_result.ui
 
 import android.content.ClipData
 import androidx.compose.ui.platform.ClipEntry
@@ -11,9 +11,7 @@ import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.toClass
-import blazern.langample.feature.search_result.model.LexicalItemDetailState.Error
-import blazern.langample.feature.search_result.model.LexicalItemDetailState.Loaded
-import blazern.langample.feature.search_result.model.LexicalItemDetailState.Loading
+import blazern.langample.feature.search_result.model.LexicalItemDetailState
 import blazern.langample.feature.search_result.model.SearchResultsState
 import blazern.langample.feature.search_result.model.add
 import blazern.langample.feature.search_result.model.remove
@@ -58,15 +56,15 @@ internal class SearchResultsViewModel(
     private fun <T : LexicalItemDetail> addLoadingsFor(source: DataSource) {
         var newState = state.value.remove(
             listOf(
-                Loading::class,
-                Error::class,
+                LexicalItemDetailState.Loading::class,
+                LexicalItemDetailState.Error::class,
             ),
             source,
         )
         for (type in sourceTypes[source] ?: emptyList()) {
             newState = newState.add(
                 type.toClass(),
-                Loading<T>(type, source)
+                LexicalItemDetailState.Loading<T>(type, source)
             )
         }
         _state.value = newState
@@ -74,14 +72,18 @@ internal class SearchResultsViewModel(
 
     fun copyText(text: String, clipboard: Clipboard) {
         viewModelScope.launch {
-            clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(
-                text, text
-            )))
+            clipboard.setClipEntry(
+                ClipEntry(
+                    ClipData.newPlainText(
+                        text, text
+                    )
+                )
+            )
         }
     }
 
     fun <T : LexicalItemDetail> onLoadingDetailVisible(
-        loading: Loading<T>,
+        loading: LexicalItemDetailState.Loading<T>,
     ) {
         continueLoadingFor<T>(loading.source)
     }
@@ -102,7 +104,7 @@ internal class SearchResultsViewModel(
             } else {
                 // The end
                 _state.value = _state.value.remove(
-                    listOf(Loading::class, Error::class),
+                    listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
                     source
                 )
             }
@@ -118,24 +120,25 @@ internal class SearchResultsViewModel(
             {
                 _state.value = _state.value.replaceWithError(
                     source,
-                    listOf(Loading::class, Error::class),
-                    { Error<T>(it, source) },
+                    listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
+                    { LexicalItemDetailState.Error<T>(it, source) },
                 )
             },
             {
                 _state.value = _state.value
                     .remove(
-                        listOf(Loading::class, Error::class),
+                        listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
                         source,
                     )
-                    .add(it::class, Loaded(it))
-                    .add(it.type.toClass(), Loading<LexicalItemDetail>(it.type, source),
+                    .add(it::class, LexicalItemDetailState.Loaded(it))
+                    .add(it.type.toClass(),
+                        LexicalItemDetailState.Loading<LexicalItemDetail>(it.type, source),
                 )
             }
         )
     }
 
-    fun <T : LexicalItemDetail> onFixErrorRequest(error: Error<T>) {
+    fun <T : LexicalItemDetail> onFixErrorRequest(error: LexicalItemDetailState.Error<T>) {
         continueLoadingFor<T>(error.source)
     }
 }
