@@ -6,6 +6,7 @@ import blazern.langample.data.kaikki.model.Entry
 import blazern.langample.domain.model.Lang
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,10 +25,22 @@ class KaikkiClient(
         query: String,
         langFrom: Lang,
     ): Either<Exception, List<Entry>> {
-        val url = "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
+        val queryToUrl = { query: String ->
+            "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
+        }
         return withContext(cpuDispatcher) {
             try {
-                val entries = ktorClientHolder.client.get(url)
+                // TODO: test
+                var result = ktorClientHolder.client.get(queryToUrl(query))
+                if (result.status == HttpStatusCode.NotFound) {
+                    val updatedQuery = if (query.firstOrNull()?.isUpperCase() == true) {
+                        query.replaceFirstChar { it.lowercase() }
+                    } else {
+                        query.replaceFirstChar { it.uppercase() }
+                    }
+                    result = ktorClientHolder.client.get(queryToUrl(updatedQuery))
+                }
+                val entries = result
                     .bodyAsText()
                     .lineSequence()
                     .filter { it.isNotBlank() }
