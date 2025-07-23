@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class Entry(
     val word: String,
     val pos: String,
-    @SerialName("pos_title") val posTitle: String,
+    @SerialName("pos_title") val posTitle: String? = null,
     @SerialName("lang_code") val langCode: String,
     val lang: String,
 

@@ -10,6 +10,7 @@ import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalIt
 import blazern.langample.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
 import blazern.langample.data.panlex.di.panLexModule
 import blazern.langample.domain.settings.di.settingsModule
+import blazern.langample.feature.home.di.homeScreenModule
 import blazern.langample.feature.search_result.di.searchResultModules
 import blazern.langample.model.lexical_item_details_source.chatgpt.ChatGPTLexicalItemDetailsSource
 import blazern.langample.model.lexical_item_details_source.tatoeba.TatoebaLexicalItemDetailsSource
@@ -26,6 +27,7 @@ class App : Application() {
             modules(
                 ktorModule(),
                 settingsModule(),
+                homeScreenModule(),
                 *searchResultModules().toTypedArray(),
                 tatoebaModule(),
                 chatgptModule(),

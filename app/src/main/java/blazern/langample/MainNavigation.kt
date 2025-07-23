@@ -10,7 +10,7 @@ import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import blazern.langample.domain.model.Lang
-import blazern.langample.feature.home.HomeScreen
+import blazern.langample.feature.home.HomeRoute
 import blazern.langample.feature.search_result.SearchResultsRoute
 
 @Composable
@@ -28,14 +28,18 @@ fun MainNavigation() {
         entryProvider = { key ->
             when (key) {
                 is Home -> NavEntry(key) {
-                    HomeScreen(
-                        onSearch = {
-                            backStack.add(SearchResults(it))
+                    HomeRoute(
+                        onSearch = { query, langFrom, langTo ->
+                            backStack.add(SearchResults(
+                                query,
+                                langFrom,
+                                langTo,
+                            ))
                         }
                     )
                 }
                 is SearchResults -> NavEntry(key) {
-                    SearchResultsRoute(key.query, Lang.DE, Lang.RU)
+                    SearchResultsRoute(key.query, key.langFrom, key.langTo)
                 }
                 else -> NavEntry(Unit) { Text("Unknown route") }
             }

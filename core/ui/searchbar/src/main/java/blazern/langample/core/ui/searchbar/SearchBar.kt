@@ -1,5 +1,6 @@
 package blazern.langample.core.ui.searchbar
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.dp
 import blazern.langample.theme.LangampleTheme
 
 
@@ -44,6 +46,7 @@ fun SearchBar(
         expanded = false,
         onExpandedChange = {},
         content = {},
+        windowInsets = WindowInsets(0.dp),
         modifier = modifier,
     )
 }

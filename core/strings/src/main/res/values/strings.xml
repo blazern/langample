@@ -2,6 +2,8 @@
 <resources>
     <string name="home_btn_search">Search</string>
     <string name="home_input_hint">Search query</string>
+    <string name="home_cd_clear_search_query">Clear search query</string>
+    <string name="home_cd_switch_langs">Switch languages</string>
 
     <string name="search_results_title">Search:</string>
 
@@ -17,4 +19,8 @@
     <string name="general_lexical_item_detail_type_synonyms">Synonyms</string>
     <string name="general_lexical_item_detail_type_explanation">Explanation</string>
     <string name="general_lexical_item_detail_type_example">Example</string>
+
+    <string name="general_lang_en">English</string>
+    <string name="general_lang_de">German</string>
+    <string name="general_lang_ru">Russian</string>
 </resources>
