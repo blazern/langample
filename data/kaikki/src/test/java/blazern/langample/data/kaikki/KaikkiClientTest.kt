@@ -19,16 +19,15 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class KaikkiClientTest {
-    private lateinit var response: Either<Exception, String>
+    private lateinit var response: ()->Either<Exception, Pair<HttpStatusCode, String>>
 
     private val mockEngine = MockEngine {
-        response.fold(
+        response().fold(
             { throw it },
-            // Simulate successful HTTP 200 with the supplied body
-            {
+            { (code, body) ->
                 respond(
-                    content = ByteReadChannel(it),
-                    status = HttpStatusCode.OK,
+                    content = ByteReadChannel(body),
+                    status = code,
                     headers = headersOf(HttpHeaders.ContentType, "application/octet-stream")
                 )
             }
@@ -92,11 +91,89 @@ class KaikkiClientTest {
         assertTrue(error is SerializationException)
     }
 
+    @Test
+    fun `search retries with lowercase if capitalized query not found`() = runBlocking {
+        val secondResponse = """
+            {"word":"haus","pos":"noun","pos_title":"Substantiv","lang_code":"de","lang":"German"}
+        """.trimIndent()
+
+        var callCount = 0
+        setResponse {
+            callCount++
+            if (callCount == 1) {
+                Either.Right(Pair(HttpStatusCode.NotFound, ""))
+            } else {
+                Either.Right(Pair(HttpStatusCode.OK, secondResponse))
+            }
+        }
+
+        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it }
+        assertEquals(1, result.size)
+        assertEquals("haus", result[0].word)
+    }
+
+    @Test
+    fun `search retries with uppercase if lowercase query not found`() = runBlocking {
+        val secondResponse = """
+            {"word":"Haus","pos":"noun","pos_title":"Substantiv","lang_code":"de","lang":"German"}
+        """.trimIndent()
+
+        var callCount = 0
+        setResponse {
+            callCount++
+            if (callCount == 1) {
+                Either.Right(Pair(HttpStatusCode.NotFound, ""))
+            } else {
+                Either.Right(Pair(HttpStatusCode.OK, secondResponse))
+            }
+        }
+
+        val result = kaikki.search("haus", Lang.DE).getOrElse { throw it }
+        assertEquals(1, result.size)
+        assertEquals("Haus", result[0].word)
+    }
+
+    @Test
+    fun `search does not retry if first response is 200 OK`() = runBlocking {
+        val body = """
+            {"word":"Haus","pos":"noun","pos_title":"Substantiv","lang_code":"de","lang":"German"}
+        """.trimIndent()
+
+        var callCount = 0
+        setResponse {
+            callCount++
+            Either.Right(Pair(HttpStatusCode.OK, body))
+        }
+
+        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it }
+
+        assertEquals(1, result.size)
+        assertEquals("Haus", result[0].word)
+        assertEquals(1, callCount)
+    }
+
+    @Test
+    fun `search does not retry a third time if both responses are 404`() = runBlocking {
+        var callCount = 0
+        setResponse {
+            callCount++
+            Either.Right(Pair(HttpStatusCode.NotFound, ""))
+        }
+
+        val result = kaikki.search("unfindable", Lang.DE)
+        assertTrue(result.getOrNull()?.isEmpty() == true)
+        assertEquals(2, callCount)
+    }
+
     private fun setResponse(body: String) {
-        response = Either.Right(body)
+        response = { Either.Right(Pair(HttpStatusCode.OK, body)) }
+    }
+
+    private fun setResponse(fn: ()->Either<Exception, Pair<HttpStatusCode, String>>) {
+        response = fn
     }
 
     private fun setResponse(exception: Exception) {
-        response = Either.Left(exception)
+        response = { Either.Left(exception) }
     }
 }
