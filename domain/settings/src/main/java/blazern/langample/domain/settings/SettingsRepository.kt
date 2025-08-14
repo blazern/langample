@@ -30,7 +30,7 @@ class SettingsRepository(
     }
 
     fun getLangFrom(): Flow<Lang> = context.dataStore.data.map {
-        iso3ToLang(it[KEY_LANG_FROM] ?: "") ?: Lang.EN
+        Lang.fromIso3(it[KEY_LANG_FROM] ?: "") ?: Lang.EN
     }
 
     suspend fun setLangTo(lang: Lang) {
@@ -40,15 +40,11 @@ class SettingsRepository(
     }
 
     fun getLangTo(): Flow<Lang> = context.dataStore.data.map {
-        iso3ToLang(it[KEY_LANG_TO] ?: "") ?: Lang.DE
+        Lang.fromIso3(it[KEY_LANG_TO] ?: "") ?: Lang.DE
     }
 
     private companion object {
         val KEY_LANG_FROM = stringPreferencesKey("lang_from")
         val KEY_LANG_TO = stringPreferencesKey("lang_to")
     }
-}
-
-private fun iso3ToLang(iso3: String): Lang? {
-    return Lang.entries.firstOrNull { it.iso3 == iso3 }
 }

@@ -11,8 +11,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.core)
+    testImplementation(libs.apollo.testing)
 
     api(project(":data:lexical-item-details-source:api"))
-    implementation(project(":data:chatgpt"))
+    implementation(project(":data:langample-graphql"))
     implementation(project(":core:utils"))
 }

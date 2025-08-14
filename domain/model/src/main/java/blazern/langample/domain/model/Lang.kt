@@ -10,6 +10,14 @@ enum class Lang(
     RU("ru", "rus"),
     EN("en", "eng"),
     DE("de", "deu"),
+    ;
+
+    companion object {
+        private val iso2Map = entries.associateBy { it.iso2 }
+        private val iso3Map = entries.associateBy { it.iso3 }
+        fun fromIso2(iso2: String): Lang? = iso2Map[iso2]
+        fun fromIso3(iso3: String): Lang? = iso3Map[iso3]
+    }
 }
 
 val Lang.strRsc: Int

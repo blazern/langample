@@ -4,24 +4,27 @@ import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
-import blazern.langample.data.chatgpt.ChatGPTClient
+import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.LexicalItemDetail.WordTranslations
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.graphql.model.LexicalItemsFromLLMQuery
+import blazern.langample.graphql.model.fragment.SentenceFields
+import blazern.langample.graphql.model.fragment.TranslationsSetFields
+import com.apollographql.apollo.ApolloClient
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import io.ktor.serialization.JsonConvertException
-import kotlinx.serialization.json.Json
+import java.io.IOException
 
 class ChatGPTLexicalItemDetailsSource(
-    private val chatGPTClient: ChatGPTClient,
+    private val apolloClientHolder: LangampleApolloClientHolder,
 ) : LexicalItemDetailsSource {
+    private val apollo: ApolloClient
+        get() = apolloClientHolder.client
+    
     override val source = DataSource.CHATGPT
     override val types = listOf(
         LexicalItemDetail.Type.FORMS,
@@ -38,33 +41,11 @@ class ChatGPTLexicalItemDetailsSource(
     ): LexicalItemDetailsFlow {
         return flow {
             while (true) {
-                val result = queryChatGPT(query, langFrom, langTo)
+                val result = apolloRequest(query, langFrom, langTo)
                 result.fold(
                     { emit(Left(it)) },
                     {
-                        emit(Right(LexicalItemDetail.Forms(it.forms, source)))
-                        emit(Right(WordTranslations(
-                            TranslationsSet(
-                                Sentence(query, langFrom, source),
-                                it.translations.map {
-                                    Sentence(it, langTo, source)
-                                }
-                            ),
-                            source,
-                        )))
-                        emit(Right(LexicalItemDetail.Synonyms(
-                            TranslationsSet(
-                                Sentence(query, langFrom, source),
-                                it.synonyms.map {
-                                    Sentence(it, langFrom, source)
-                                }
-                            ),
-                            source,
-                        )))
-                        emit(Right(LexicalItemDetail.Explanation(it.explanation, source)))
-                        it.convertExamples(langFrom, langTo).forEach {
-                            emit(Right(LexicalItemDetail.Example(it, source)))
-                        }
+                        it.forEach { emit(Right(it)) }
                         return@flow
                     }
                 )
@@ -72,106 +53,100 @@ class ChatGPTLexicalItemDetailsSource(
         }
     }
 
-    private suspend fun queryChatGPT(
+    private suspend fun apolloRequest(
         query: String,
         langFrom: Lang,
-        langTo: Lang
-    ): Either<Exception, ChatGPTResponse> {
-        val chatGptQuery = generateChatGPTQuery(
-            query,
-            langFrom,
-            langTo,
-        )
-        val responseText = chatGPTClient.request(chatGptQuery).getOrElse {
+        langTo: Lang,
+    ): Either<Exception, List<LexicalItemDetail>> {
+        val result = apollo.query(
+            LexicalItemsFromLLMQuery(
+                query,
+                langFromIso2 = langFrom.iso2,
+                langToIso2 = langTo.iso2,
+            )
+        ).execute()
+
+        result.exception?.let {
             return Left(it)
         }
 
-        val response: ChatGPTResponse = try {
-            Json.decodeFromString(responseText)
-        } catch (e: SerializationException) {
-            return Left(e)
-        } catch (e: JsonConvertException) {
-            return Left(e)
+        if (!result.errors.isNullOrEmpty()) {
+            val msg = result.errors!!.joinToString("; ") { it.message }
+            return Left(IOException(msg))
         }
-        return Right(response)
-    }
 
-    private companion object {
-        val formsExplanation = """
-if noun: article, singular form, plural form changes, e.g.:
-der Hund, -e
-der Platz, -äe
-der Wurm, -(ü)e
-if verb: follow next examples:
-gehen, geht, ging, ist gegangen
-lieben, liebt, liebte, hat geliebt
-for others (adverb, adjective) make it as simple as possible
-            """.trimIndent()
+        val data = result.data ?: return Right(emptyList())
 
-        fun generateChatGPTQuery(
-            query: String,
-            langFrom: Lang,
-            langTo: Lang,
-        ): String {
-            return """
-you are called from a language learning app, your goal is to
-generate a reply in next format:
-{
-    "forms": "<FORMS>",
-    "translations": ["<TRANSLATION>", "<TRANSLATION>", "<TRANSLATION>"],
-    "synonyms": ["<SYNONYM>", "<SYNONYM>", "<SYNONYM>"],
-    "explanation": "<EXPLANATION_SOURCE_LANG>",
-    "examples": [
-        "<EXAMPLE>",
-        "<EXAMPLE>",
-        "<EXAMPLE>",
-        "<EXAMPLE>",
-        "<EXAMPLE>"
-    ]
-}
-The reply must explain next word: $query
-Source lang: ${langFrom.iso3}
-Target lang: ${langTo.iso3}
-Placeholders
-<FORMS>: $formsExplanation
-<TRANSLATION>: a translation into ${langTo.iso3}
-<SYNONYM>: a synonym in ${langFrom.iso3}
-<EXPLANATION_SOURCE_LANG>: short (2-3 sentences) explanation of the word, lang: ${langTo.iso3}
-<EXAMPLE>: example sentence ${langFrom.iso3} | example sentence ${langTo.iso3}
-Where "|" is a required delimiter, example sentences must be short.
-Translations and synonyms may contain 1-6 entries.
-            """.trimIndent()
+        val items = data.llm.mapNotNull {
+            it.toDomain().getOrElse { return Left(it) }
         }
+        return Right(items)
     }
 }
 
-@Serializable
-private class ChatGPTResponse(
-    val forms: String,
-    val translations: List<String>,
-    val synonyms: List<String>,
-    val explanation: String,
-    val examples: List<String>,
-)
 
-private fun ChatGPTResponse.convertExamples(
-    langFrom: Lang,
-    langTo: Lang,
-): List<TranslationsSet> {
-    return examples.map {
-        TranslationsSet(
-            original = Sentence(
-                it.split("|").first().trim(),
-                langTo,
-                DataSource.CHATGPT,
-            ),
-            translations = listOf(
-                Sentence(
-                    it.split("|").last().trim(),
-                    langFrom,
-                    DataSource.CHATGPT,
-                )
-            )
-        )
+private fun LexicalItemsFromLLMQuery.Llm.toDomain(): Either<IllegalArgumentException, LexicalItemDetail?> {
+    onForms?.let {
+        return Right(LexicalItemDetail.Forms(
+            text = it.text,
+            source = mapSource(it.source)
+        ))
     }
+    onExplanation?.let {
+        return Right(LexicalItemDetail.Explanation(
+            text = it.text,
+            source = mapSource(it.source)
+        ))
+    }
+    onWordTranslations?.let {
+        val ts = it.translationsSet.translationsSetFields
+        return Right(LexicalItemDetail.WordTranslations(
+            translationsSet = ts.toDomain().getOrElse { return Left(it) },
+            source = mapSource(it.source)
+        ))
+    }
+    onSynonyms?.let {
+        val ts = it.translationsSet.translationsSetFields
+        return Right(LexicalItemDetail.Synonyms(
+            translationsSet = ts.toDomain().getOrElse { return Left(it) },
+            source = mapSource(it.source)
+        ))
+    }
+    onExample?.let {
+        val ts = it.translationsSet.translationsSetFields
+        return Right(LexicalItemDetail.Example(
+            translationsSet = ts.toDomain().getOrElse { return Left(it) },
+            source = mapSource(it.source)
+        ))
+    }
+    // New field in a newer version of the backend was added apparently
+    return Right(null)
 }
+
+private fun TranslationsSetFields.toDomain(): Either<IllegalArgumentException, TranslationsSet> {
+    return Right(TranslationsSet(
+        original = original.toDomain()
+            .getOrElse { return Left(it) },
+        translations = translations.map {
+            it.toDomain().getOrElse { return Left(it) }
+        }
+    ))
+}
+
+private fun TranslationsSetFields.Original.toDomain():
+        Either<IllegalArgumentException, Sentence> = this.sentenceFields.toDomain()
+
+private fun TranslationsSetFields.Translation.toDomain():
+        Either<IllegalArgumentException, Sentence> = this.sentenceFields.toDomain()
+
+private fun SentenceFields.toDomain(): Either<IllegalArgumentException, Sentence> {
+    val lang = Lang.fromIso2(langIso2)
+        ?: return Left(IllegalArgumentException("Lang $langIso2 not supported"))
+    return Right(Sentence(
+        text = text,
+        lang = lang,
+        source = mapSource(source),
+    ))
+}
+
+private fun mapSource(remoteSource: String) = DataSource.CHATGPT
