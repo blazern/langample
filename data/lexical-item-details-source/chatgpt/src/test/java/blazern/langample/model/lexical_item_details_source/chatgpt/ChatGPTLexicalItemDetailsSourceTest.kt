@@ -3,47 +3,186 @@ package blazern.langample.model.lexical_item_details_source.chatgpt
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
-import blazern.langample.data.chatgpt.ChatGPTClient
-import blazern.langample.domain.model.DataSource
+import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
 import blazern.langample.domain.model.DataSource.CHATGPT
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.graphql.model.LexicalItemsFromLLMQuery
 import blazern.langample.utils.FlowIterator
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.ApolloResponse
+import com.apollographql.apollo.api.json.BufferedSourceJsonReader
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.parseResponse
+import com.apollographql.apollo.exception.DefaultApolloException
+import com.benasher44.uuid.Uuid
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import kotlinx.io.IOException
+import okio.Buffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ChatGPTLexicalItemDetailsSourceTest {
-    private val chatGpt = mockk<ChatGPTClient>()
-    private val source  = ChatGPTLexicalItemDetailsSource(chatGpt)
+    private val apolloClient = mockk<ApolloClient>()
+    private val holder = mockk<LangampleApolloClientHolder>()
+    private val source  = ChatGPTLexicalItemDetailsSource(holder)
 
-    private val chatGptJson = """
+    init {
+        every { holder.client } returns apolloClient
+    }
+
+    private fun op(query: String = "Hund", from: String = "de", to: String = "en") =
+        LexicalItemsFromLLMQuery(query, from, to)
+
+    private fun parse(op: LexicalItemsFromLLMQuery, json: String):
+            ApolloResponse<LexicalItemsFromLLMQuery.Data> {
+        val reader: JsonReader = BufferedSourceJsonReader(Buffer().writeUtf8(json))
+        return op.parseResponse(reader)
+    }
+
+    private fun successResponse(): ApolloResponse<LexicalItemsFromLLMQuery.Data> {
+        val json = """
             {
-              "forms": "der Hund, -e",
-              "translations": ["dog", "hound"],
-              "synonyms": ["Hündin", "Köter"],
-              "explanation": "Der Hund ist ein Haustier.",
-              "examples": [
-                "Dog|Hund",
-                "My dog|Mein Hund"
-              ]
+              "data": {
+                "llm": [
+                  { "__typename": "Forms", "source": "chatgpt", "text": "der Hund, -e" },
+                  {
+                    "__typename": "Explanation",
+                    "source": "chatgpt",
+                    "text": "Der Hund ist ein Haustier."
+                  },
+                  {
+                    "__typename": "WordTranslations",
+                    "source": "chatgpt",
+                    "translationsSet": {
+                      "__typename": "TranslationsSet",
+                      "original": {
+                        "__typename": "Sentence",
+                        "text": "Hund",
+                        "langIso2": "de",
+                        "source": "chatgpt"
+                      },
+                      "translations": [
+                        {
+                          "__typename": "Sentence",
+                          "text": "dog",
+                          "langIso2": "en",
+                          "source": "chatgpt"
+                        },
+                        {
+                          "__typename": "Sentence",
+                          "text": "hound",
+                          "langIso2": "en",
+                          "source": "chatgpt"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "__typename": "Synonyms",
+                    "source": "chatgpt",
+                    "translationsSet": {
+                      "__typename": "TranslationsSet",
+                      "original": {
+                        "__typename": "Sentence",
+                        "text": "Hund",
+                        "langIso2": "de",
+                        "source": "chatgpt"
+                      },
+                      "translations": [
+                        {
+                          "__typename": "Sentence",
+                          "text": "Hündin",
+                          "langIso2": "de",
+                          "source": "chatgpt"
+                        },
+                        {
+                          "__typename": "Sentence",
+                          "text": "Köter",
+                          "langIso2": "de",
+                          "source": "chatgpt"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "__typename": "Example",
+                    "source": "chatgpt",
+                    "translationsSet": {
+                      "__typename": "TranslationsSet",
+                      "original": {
+                        "__typename": "Sentence",
+                        "text": "Dog",
+                        "langIso2": "en",
+                        "source": "chatgpt"
+                      },
+                      "translations": [
+                        {
+                          "__typename": "Sentence",
+                          "text": "Hund",
+                          "langIso2": "de",
+                          "source": "chatgpt"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "__typename": "Example",
+                    "source": "chatgpt",
+                    "translationsSet": {
+                      "__typename": "TranslationsSet",
+                      "original": {
+                        "__typename": "Sentence",
+                        "text": "My dog",
+                        "langIso2": "en",
+                        "source": "chatgpt"
+                      },
+                      "translations": [
+                        {
+                          "__typename": "Sentence",
+                          "text": "Mein Hund",
+                          "langIso2": "de",
+                          "source": "chatgpt"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
             }
         """.trimIndent()
+        return parse(op(), json)
+    }
+
+    private fun networkErrorResponse(): ApolloResponse<LexicalItemsFromLLMQuery.Data> {
+        return ApolloResponse.Builder<LexicalItemsFromLLMQuery.Data>(op(), Uuid.randomUUID())
+            .exception(DefaultApolloException("no network"))
+            .build()
+    }
+
+    private fun graphqlErrorsResponse(): ApolloResponse<LexicalItemsFromLLMQuery.Data> {
+        val json = """
+            {
+              "errors": [ { "message": "malformed response" } ],
+              "data": null
+            }
+        """.trimIndent()
+        return parse(op(), json)
+    }
 
     @Test
     fun `good scenario`() = runBlocking {
-        coEvery { chatGpt.request(any()) } returns Right(chatGptJson)
+        coEvery { apolloClient.query(any<LexicalItemsFromLLMQuery>()).execute() } returns successResponse()
 
         val details = source.request("Hund", Lang.DE, Lang.EN)
-            .take(20) // We're not expecting a lot of results
+            .take(20)
             .toList()
             .map { it.getOrElse { throw it } }
 
@@ -116,20 +255,21 @@ class ChatGPTLexicalItemDetailsSourceTest {
 
     @Test
     fun `first IO error then good scenario`() = runBlocking {
-        // Bad
-        coEvery { chatGpt.request(any()) } returns Left(IOException("no network"))
+        coEvery { apolloClient.query(any<LexicalItemsFromLLMQuery>()).execute() } returnsMany listOf(
+            networkErrorResponse(),
+            successResponse(),
+        )
+
         val flow = source.request("dog", Lang.EN, Lang.DE)
         val iter = FlowIterator(flow, this)
         assertTrue(iter.next() is Left)
-
-        coEvery { chatGpt.request(any()) } returns Right(chatGptJson)
         assertTrue(iter.next() is Right)
         iter.close()
     }
 
     @Test
-    fun `malformed JSON`() = runBlocking {
-        coEvery { chatGpt.request(any()) } returns Right("{ error }")
+    fun `graphql errors`() = runBlocking {
+        coEvery { apolloClient.query(any<LexicalItemsFromLLMQuery>()).execute() } returns graphqlErrorsResponse()
 
         val flow = source.request("dog", Lang.EN, Lang.DE)
         val iter = FlowIterator(flow, this)

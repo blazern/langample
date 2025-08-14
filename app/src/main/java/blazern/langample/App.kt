@@ -2,8 +2,8 @@ package blazern.langample
 
 import android.app.Application
 import blazern.langample.core.ktor.di.ktorModule
-import blazern.langample.data.chatgpt.di.chatgptModule
 import blazern.langample.data.kaikki.di.kaikkiModule
+import blazern.langample.data.langample.graphql.di.langampleGraphQLModule
 import blazern.langample.data.tatoeba.di.tatoebaModule
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
@@ -30,7 +30,7 @@ class App : Application() {
                 homeScreenModule(),
                 *searchResultModules().toTypedArray(),
                 tatoebaModule(),
-                chatgptModule(),
+                langampleGraphQLModule(),
                 kaikkiModule(),
                 panLexModule(),
                 LexicalItemDetailsSources,
@@ -48,7 +48,7 @@ private val LexicalItemDetailsSources = module {
 
     single {
         ChatGPTLexicalItemDetailsSource(
-            chatGPTClient = get(),
+            apolloClientHolder = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 

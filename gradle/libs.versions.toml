@@ -19,8 +19,10 @@ ksp = "2.2.0-2.0.2"
 ktor = "3.2.2"
 koin = "4.1.0"
 mockk = "1.14.5"
-coroutinesVersion= " 1.10.2"
+coroutinesVersion = "1.10.2"
 datastore = "1.1.7"
+apollo = "4.3.2"
+apolloKtor = "0.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -65,6 +67,11 @@ koin-android-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmod
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 
+# GraphQL
+apollo-runtime = { module = "com.apollographql.apollo:apollo-runtime", version.ref = "apollo" }
+apollo-testing = { module = "com.apollographql.apollo:apollo-testing-support", version.ref = "apollo" }
+apollo-engine-ktor = { module = "com.apollographql.ktor:apollo-engine-ktor", version.ref = "apolloKtor" }
+
 # Tests
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -81,3 +88,4 @@ jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serializati
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+apollo = { id = "com.apollographql.apollo", version.ref = "apollo" }

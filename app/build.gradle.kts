@@ -67,7 +67,7 @@ dependencies {
     implementation(project(":domain:model"))
     implementation(project(":domain:settings"))
     implementation(project(":data:tatoeba"))
-    implementation(project(":data:chatgpt"))
+    implementation(project(":data:langample-graphql"))
     implementation(project(":data:kaikki"))
     implementation(project(":data:panlex"))
     implementation(project(":data:lexical-item-details-source:tatoeba"))
