@@ -1,14 +1,3 @@
-fragment SentenceFields on Sentence {
-  text
-  langIso3
-  source
-}
-
-fragment TranslationsSetFields on TranslationsSet {
-  original { ...SentenceFields }
-  translations { ...SentenceFields }
-}
-
 query LexicalItemsFromLLMQuery(
   $query: String!,
   $langFromIso3: String!,

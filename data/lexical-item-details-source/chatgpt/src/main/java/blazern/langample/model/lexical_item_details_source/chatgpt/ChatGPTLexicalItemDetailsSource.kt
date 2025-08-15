@@ -84,7 +84,6 @@ class ChatGPTLexicalItemDetailsSource(
     }
 }
 
-
 private fun LexicalItemsFromLLMQuery.Llm.toDomain(): Either<IllegalArgumentException, LexicalItemDetail?> {
     onForms?.let {
         return Right(LexicalItemDetail.Forms(

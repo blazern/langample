@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(project(":data:lexical-item-details-source:api"))
-    implementation(project(":data:panlex"))
     implementation(project(":core:utils"))
+    implementation(project(":data:langample-graphql"))
+    testImplementation(libs.apollo.testing)
 }
