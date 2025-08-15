@@ -1,45 +1,131 @@
 package blazern.langample.data.lexical_item_details_source.panlex
 
-import arrow.core.Either
+import arrow.core.Either.Left
+import arrow.core.Either.Right
 import arrow.core.getOrElse
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
-import blazern.langample.data.panlex.PanLexClient
-import blazern.langample.data.panlex.model.WordData
-import blazern.langample.domain.model.DataSource
+import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
+import blazern.langample.domain.model.DataSource.PANLEX
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.graphql.model.LexicalItemsFromPanLexQuery
 import blazern.langample.utils.FlowIterator
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.ApolloResponse
+import com.apollographql.apollo.api.json.BufferedSourceJsonReader
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.parseResponse
+import com.apollographql.apollo.exception.DefaultApolloException
+import com.benasher44.uuid.Uuid
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
-import kotlinx.io.IOException
+import okio.Buffer
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
-import org.junit.Assert.*
-
 class PanLexLexicalItemDetailsSourceTest {
-    private val panLexClient = mockk<PanLexClient>()
-    private val source: LexicalItemDetailsSource = PanLexLexicalItemDetailsSource(panLexClient)
+    private val apolloClient = mockk<ApolloClient>()
+    private val holder = mockk<LangampleApolloClientHolder>()
+    private val source = PanLexLexicalItemDetailsSource(holder)
 
-    private val wordData = WordData(
-        word = "Haus",
-        lang = Lang.DE,
-        translations = listOf(
-            WordData("house", Lang.EN),
-        ),
-        synonyms = listOf(
-            WordData("Gebäude", Lang.DE),
-            WordData("Bauwerk", Lang.DE),
-        )
-    )
+    init {
+        every { holder.client } returns apolloClient
+    }
+
+    private fun op(query: String = "Haus", from: String = "deu", to: String = "eng") =
+        LexicalItemsFromPanLexQuery(query, from, to)
+
+    private fun parse(op: LexicalItemsFromPanLexQuery, json: String):
+            ApolloResponse<LexicalItemsFromPanLexQuery.Data> {
+        val reader: JsonReader = BufferedSourceJsonReader(Buffer().writeUtf8(json))
+        return op.parseResponse(reader)
+    }
+
+    private fun successResponse(): ApolloResponse<LexicalItemsFromPanLexQuery.Data> {
+        val json = """
+            {
+              "data": {
+                "panlex": [
+                  {
+                    "__typename": "WordTranslations",
+                    "source": "panlex",
+                    "translationsSet": {
+                      "__typename": "TranslationsSet",
+                      "original": {
+                        "__typename": "Sentence",
+                        "text": "Haus",
+                        "langIso3": "deu",
+                        "source": "panlex"
+                      },
+                      "translations": [
+                        {
+                          "__typename": "Sentence",
+                          "text": "house",
+                          "langIso3": "eng",
+                          "source": "panlex"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "__typename": "Synonyms",
+                    "source": "panlex",
+                    "translationsSet": {
+                      "__typename": "TranslationsSet",
+                      "original": {
+                        "__typename": "Sentence",
+                        "text": "Haus",
+                        "langIso3": "deu",
+                        "source": "panlex"
+                      },
+                      "translations": [
+                        {
+                          "__typename": "Sentence",
+                          "text": "Gebäude",
+                          "langIso3": "deu",
+                          "source": "panlex"
+                        },
+                        {
+                          "__typename": "Sentence",
+                          "text": "Bauwerk",
+                          "langIso3": "deu",
+                          "source": "panlex"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+        """.trimIndent()
+        return parse(op(), json)
+    }
+
+    private fun networkErrorResponse(): ApolloResponse<LexicalItemsFromPanLexQuery.Data> {
+        return ApolloResponse.Builder<LexicalItemsFromPanLexQuery.Data>(op(), Uuid.randomUUID())
+            .exception(DefaultApolloException("no network"))
+            .build()
+    }
+
+    private fun graphqlErrorsResponse(): ApolloResponse<LexicalItemsFromPanLexQuery.Data> {
+        val json = """
+            {
+              "errors": [ { "message": "malformed response" } ],
+              "data": null
+            }
+        """.trimIndent()
+        return parse(op(), json)
+    }
 
     @Test
     fun `source id and supported types`() = runBlocking {
-        assertEquals(DataSource.PANLEX, source.source)
+        assertEquals(PANLEX, source.source)
         assertEquals(
             listOf(
                 LexicalItemDetail.Type.WORD_TRANSLATIONS,
@@ -50,57 +136,63 @@ class PanLexLexicalItemDetailsSourceTest {
     }
 
     @Test
-    fun `emits translations and synonyms correctly`() = runBlocking {
-        coEvery {
-            panLexClient.search(any(), any(), any())
-        } returns Either.Right(wordData)
+    fun `good scenario`() = runBlocking {
+        coEvery { apolloClient.query(any<LexicalItemsFromPanLexQuery>()).execute() } returns successResponse()
 
-        val results = source.request("Haus", Lang.DE, Lang.EN)
+        val details = source.request("Haus", Lang.DE, Lang.EN)
+            .take(10)
             .toList()
             .map { it.getOrElse { throw it } }
 
-        val expected = listOf(
+        val translations = details.filterIsInstance<LexicalItemDetail.WordTranslations>().single()
+        assertEquals(
             LexicalItemDetail.WordTranslations(
                 TranslationsSet(
-                    original = Sentence("Haus", Lang.DE, DataSource.PANLEX),
-                    translations = listOf(
-                        Sentence("house", Lang.EN, DataSource.PANLEX)
-                    )
+                    Sentence("Haus", Lang.DE, PANLEX),
+                    listOf(Sentence("house", Lang.EN, PANLEX))
                 ),
-                DataSource.PANLEX
+                PANLEX
             ),
-            LexicalItemDetail.Synonyms(
-                TranslationsSet(
-                    original = Sentence("Haus", Lang.DE, DataSource.PANLEX),
-                    translations = listOf(
-                        Sentence("Gebäude", Lang.DE, DataSource.PANLEX),
-                        Sentence("Bauwerk", Lang.DE, DataSource.PANLEX),
-                    )
-                ),
-                DataSource.PANLEX
-            )
+            translations
         )
 
-        assertEquals(expected, results)
+        val synonyms = details.filterIsInstance<LexicalItemDetail.Synonyms>().single()
+        assertEquals(
+            LexicalItemDetail.Synonyms(
+                TranslationsSet(
+                    Sentence("Haus", Lang.DE, PANLEX),
+                    listOf(
+                        Sentence("Gebäude", Lang.DE, PANLEX),
+                        Sentence("Bauwerk", Lang.DE, PANLEX),
+                    )
+                ),
+                PANLEX
+            ),
+            synonyms
+        )
     }
 
     @Test
-    fun `recovers after initial error`() = runTest {
-        val io = IOException("no internet")
-        coEvery {
-            panLexClient.search(any(), any(), any())
-        } returns Either.Left(io)
+    fun `first IO error then good scenario`() = runBlocking {
+        coEvery { apolloClient.query(any<LexicalItemsFromPanLexQuery>()).execute() } returnsMany listOf(
+            networkErrorResponse(),
+            successResponse(),
+        )
 
         val flow = source.request("Haus", Lang.DE, Lang.EN)
         val iter = FlowIterator(flow, this)
+        assertTrue(iter.next() is Left)   // network error
+        assertTrue(iter.next() is Right)  // success afterwards
+        iter.close()
+    }
 
-        assertTrue(iter.next() is Either.Left)
+    @Test
+    fun `graphql errors`() = runBlocking {
+        coEvery { apolloClient.query(any<LexicalItemsFromPanLexQuery>()).execute() } returns graphqlErrorsResponse()
 
-        coEvery {
-            panLexClient.search(any(), any(), any())
-        } returns Either.Right(wordData)
-
-        assertTrue(iter.next() is Either.Right)
+        val flow = source.request("Haus", Lang.DE, Lang.EN)
+        val iter = FlowIterator(flow, this)
+        assertTrue(iter.next() is Left)
         iter.close()
     }
 }

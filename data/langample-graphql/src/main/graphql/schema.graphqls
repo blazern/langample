@@ -37,6 +37,8 @@ union LexicalItemDetail = Forms|WordTranslations|Synonyms|Explanation|Example
 
 type Query {
   llm(query: String!, langFromIso3: String!, langToIso3: String!): [LexicalItemDetail!]!
+
+  panlex(query: String!, langFromIso3: String!, langToIso3: String!): [LexicalItemDetail!]!
 }
 
 type Sentence {
@@ -64,6 +66,11 @@ type TranslationsSet {
   original: Sentence!
 
   translations: [Sentence!]!
+
+  """
+  Possible values are 0-9
+  """
+  translationsQualities: [Int!]
 }
 
 type WordTranslations {
