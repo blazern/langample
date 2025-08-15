@@ -14,9 +14,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.serialization.JsonConvertException
-import kotlinx.io.IOException
-import kotlinx.serialization.SerializationException
 
 class PanLexClient(
     private val ktorClientHolder: KtorClientHolder,

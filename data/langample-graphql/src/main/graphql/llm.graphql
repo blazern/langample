@@ -1,6 +1,6 @@
 fragment SentenceFields on Sentence {
   text
-  langIso2
+  langIso3
   source
 }
 
@@ -11,10 +11,10 @@ fragment TranslationsSetFields on TranslationsSet {
 
 query LexicalItemsFromLLMQuery(
   $query: String!,
-  $langFromIso2: String!,
-  $langToIso2: String!
+  $langFromIso3: String!,
+  $langToIso3: String!
 ) {
-  llm(query: $query, langFromIso2: $langFromIso2, langToIso2: $langToIso2) {
+  llm(query: $query, langFromIso3: $langFromIso3, langToIso3: $langToIso3) {
     __typename
     ... on Forms {
       text
