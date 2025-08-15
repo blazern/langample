@@ -38,7 +38,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
         every { holder.client } returns apolloClient
     }
 
-    private fun op(query: String = "Hund", from: String = "de", to: String = "en") =
+    private fun op(query: String = "Hund", from: String = "deu", to: String = "eng") =
         LexicalItemsFromLLMQuery(query, from, to)
 
     private fun parse(op: LexicalItemsFromLLMQuery, json: String):
@@ -66,20 +66,20 @@ class ChatGPTLexicalItemDetailsSourceTest {
                       "original": {
                         "__typename": "Sentence",
                         "text": "Hund",
-                        "langIso2": "de",
+                        "langIso3": "deu",
                         "source": "chatgpt"
                       },
                       "translations": [
                         {
                           "__typename": "Sentence",
                           "text": "dog",
-                          "langIso2": "en",
+                          "langIso3": "eng",
                           "source": "chatgpt"
                         },
                         {
                           "__typename": "Sentence",
                           "text": "hound",
-                          "langIso2": "en",
+                          "langIso3": "eng",
                           "source": "chatgpt"
                         }
                       ]
@@ -93,20 +93,20 @@ class ChatGPTLexicalItemDetailsSourceTest {
                       "original": {
                         "__typename": "Sentence",
                         "text": "Hund",
-                        "langIso2": "de",
+                        "langIso3": "deu",
                         "source": "chatgpt"
                       },
                       "translations": [
                         {
                           "__typename": "Sentence",
                           "text": "Hündin",
-                          "langIso2": "de",
+                          "langIso3": "deu",
                           "source": "chatgpt"
                         },
                         {
                           "__typename": "Sentence",
                           "text": "Köter",
-                          "langIso2": "de",
+                          "langIso3": "deu",
                           "source": "chatgpt"
                         }
                       ]
@@ -120,14 +120,14 @@ class ChatGPTLexicalItemDetailsSourceTest {
                       "original": {
                         "__typename": "Sentence",
                         "text": "Dog",
-                        "langIso2": "en",
+                        "langIso3": "eng",
                         "source": "chatgpt"
                       },
                       "translations": [
                         {
                           "__typename": "Sentence",
                           "text": "Hund",
-                          "langIso2": "de",
+                          "langIso3": "deu",
                           "source": "chatgpt"
                         }
                       ]
@@ -141,14 +141,14 @@ class ChatGPTLexicalItemDetailsSourceTest {
                       "original": {
                         "__typename": "Sentence",
                         "text": "My dog",
-                        "langIso2": "en",
+                        "langIso3": "eng",
                         "source": "chatgpt"
                       },
                       "translations": [
                         {
                           "__typename": "Sentence",
                           "text": "Mein Hund",
-                          "langIso2": "de",
+                          "langIso3": "deu",
                           "source": "chatgpt"
                         }
                       ]

@@ -61,8 +61,8 @@ class ChatGPTLexicalItemDetailsSource(
         val result = apollo.query(
             LexicalItemsFromLLMQuery(
                 query,
-                langFromIso2 = langFrom.iso2,
-                langToIso2 = langTo.iso2,
+                langFromIso3 = langFrom.iso3,
+                langToIso3 = langTo.iso3,
             )
         ).execute()
 
@@ -140,8 +140,8 @@ private fun TranslationsSetFields.Translation.toDomain():
         Either<IllegalArgumentException, Sentence> = this.sentenceFields.toDomain()
 
 private fun SentenceFields.toDomain(): Either<IllegalArgumentException, Sentence> {
-    val lang = Lang.fromIso2(langIso2)
-        ?: return Left(IllegalArgumentException("Lang $langIso2 not supported"))
+    val lang = Lang.fromIso3(langIso3)
+        ?: return Left(IllegalArgumentException("Lang $langIso3 not supported"))
     return Right(Sentence(
         text = text,
         lang = lang,

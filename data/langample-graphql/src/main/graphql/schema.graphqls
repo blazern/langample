@@ -36,13 +36,13 @@ scalar Int
 union LexicalItemDetail = Forms|WordTranslations|Synonyms|Explanation|Example
 
 type Query {
-  llm(query: String!, langFromIso2: String!, langToIso2: String!): [LexicalItemDetail!]!
+  llm(query: String!, langFromIso3: String!, langToIso3: String!): [LexicalItemDetail!]!
 }
 
 type Sentence {
   text: String!
 
-  langIso2: String!
+  langIso3: String!
 
   source: String!
 }
