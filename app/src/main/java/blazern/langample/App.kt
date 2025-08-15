@@ -8,7 +8,6 @@ import blazern.langample.data.tatoeba.di.tatoebaModule
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
-import blazern.langample.data.panlex.di.panLexModule
 import blazern.langample.domain.settings.di.settingsModule
 import blazern.langample.feature.home.di.homeScreenModule
 import blazern.langample.feature.search_result.di.searchResultModules
@@ -32,7 +31,6 @@ class App : Application() {
                 tatoebaModule(),
                 langampleGraphQLModule(),
                 kaikkiModule(),
-                panLexModule(),
                 LexicalItemDetailsSources,
             )
         }
@@ -61,7 +59,7 @@ private val LexicalItemDetailsSources = module {
 
     single {
         PanLexLexicalItemDetailsSource(
-            panLexClient = get(),
+            apolloClientHolder = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 }
