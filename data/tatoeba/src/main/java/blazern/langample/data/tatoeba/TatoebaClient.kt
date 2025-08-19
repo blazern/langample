@@ -53,6 +53,7 @@ class TatoebaClient(
                         source = DataSource.TATOEBA,
                     ),
                     translations = translations,
+                    translationsQualities = translations.map { TranslationsSet.QUALITY_MAX }
                 ))
             }
         }

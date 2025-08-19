@@ -63,6 +63,7 @@ class KaikkiLexicalItemDetailsSource(
                                             TranslationsSet(
                                                 original = Sentence(example.text, langTo, source),
                                                 translations = emptyList(),
+                                                translationsQualities = emptyList(),
                                             ),
                                             source,
                                         )))

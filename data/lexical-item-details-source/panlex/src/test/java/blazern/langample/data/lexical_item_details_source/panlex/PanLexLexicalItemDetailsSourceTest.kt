@@ -9,6 +9,7 @@ import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_BASIC
 import blazern.langample.graphql.model.LexicalItemsFromPanLexQuery
 import blazern.langample.utils.FlowIterator
 import com.apollographql.apollo.ApolloClient
@@ -69,8 +70,15 @@ class PanLexLexicalItemDetailsSourceTest {
                           "text": "house",
                           "langIso3": "eng",
                           "source": "panlex"
+                        },
+                        {
+                          "__typename": "Sentence",
+                          "text": "building",
+                          "langIso3": "eng",
+                          "source": "panlex"
                         }
-                      ]
+                      ],
+                      "translationsQualities": [5]
                     }
                   },
                   {
@@ -97,7 +105,8 @@ class PanLexLexicalItemDetailsSourceTest {
                           "langIso3": "deu",
                           "source": "panlex"
                         }
-                      ]
+                      ],
+                      "translationsQualities": [2, 3]
                     }
                   }
                 ]
@@ -148,8 +157,13 @@ class PanLexLexicalItemDetailsSourceTest {
         assertEquals(
             LexicalItemDetail.WordTranslations(
                 TranslationsSet(
-                    Sentence("Haus", Lang.DE, PANLEX),
-                    listOf(Sentence("house", Lang.EN, PANLEX))
+                    original = Sentence("Haus", Lang.DE, PANLEX),
+                    translations = listOf(
+                        Sentence("house", Lang.EN, PANLEX),
+                        Sentence("building", Lang.EN, PANLEX),
+                    ),
+                    // The first quality is specified in the backend response, but the second is not
+                    translationsQualities = listOf(5, QUALITY_BASIC)
                 ),
                 PANLEX
             ),
@@ -164,7 +178,8 @@ class PanLexLexicalItemDetailsSourceTest {
                     listOf(
                         Sentence("Gebäude", Lang.DE, PANLEX),
                         Sentence("Bauwerk", Lang.DE, PANLEX),
-                    )
+                    ),
+                    translationsQualities = listOf(2, 3)
                 ),
                 PANLEX
             ),

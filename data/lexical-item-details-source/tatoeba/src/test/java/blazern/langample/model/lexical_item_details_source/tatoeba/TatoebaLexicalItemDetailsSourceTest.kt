@@ -9,6 +9,7 @@ import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -29,11 +30,13 @@ class TatoebaLexicalItemDetailsSourceTest {
     private val translationsSets = listOf(
         TranslationsSet(
             original = Sentence("Hello", Lang.EN, DataSource.TATOEBA),
-            translations = listOf(Sentence("Hallo", Lang.DE, DataSource.TATOEBA))
+            translations = listOf(Sentence("Hallo", Lang.DE, DataSource.TATOEBA)),
+            translationsQualities = listOf(QUALITY_MAX),
         ),
         TranslationsSet(
             original = Sentence("Good morning", Lang.EN, DataSource.TATOEBA),
-            translations = listOf(Sentence("Guten Morgen", Lang.DE, DataSource.TATOEBA))
+            translations = listOf(Sentence("Guten Morgen", Lang.DE, DataSource.TATOEBA)),
+            translationsQualities = listOf(QUALITY_MAX),
         ),
     )
 
