@@ -7,6 +7,7 @@ import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
@@ -87,12 +88,14 @@ class TatoebaClientTest {
                     Sentence("Hallo!", Lang.DE, DataSource.TATOEBA),
                     Sentence("Grüß Gott!", Lang.DE, DataSource.TATOEBA),
                 ),
+                translationsQualities = listOf(QUALITY_MAX, QUALITY_MAX),
             ),
             TranslationsSet(
                 original = Sentence("Hello there", Lang.EN, DataSource.TATOEBA),
                 translations = listOf(
                     Sentence("Guten Tag", Lang.DE, DataSource.TATOEBA),
                 ),
+                translationsQualities = listOf(QUALITY_MAX),
             ),
         )
 

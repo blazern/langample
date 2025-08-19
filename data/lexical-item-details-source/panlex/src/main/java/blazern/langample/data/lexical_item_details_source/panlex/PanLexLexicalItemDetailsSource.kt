@@ -106,7 +106,8 @@ private fun TranslationsSetFields.toDomain(): Either<IllegalArgumentException, T
             .getOrElse { return Left(it) },
         translations = translations.map {
             it.toDomain().getOrElse { return Left(it) }
-        }
+        },
+        translationsQualities = translationsQualities ?: translations.map { TranslationsSet.QUALITY_BASIC },
     ))
 }
 

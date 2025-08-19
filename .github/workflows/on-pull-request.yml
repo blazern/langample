@@ -23,7 +23,7 @@ jobs:
         if: always()
         run: |
           for report in $(find . -path "*/build/reports/tests/*UnitTest/index.html"); do
-            echo "### $(basename $(dirname $(dirname $(dirname $(dirname $(dirname "$report"))))))" >> $GITHUB_STEP_SUMMARY
+            echo "# $(basename $(dirname $(dirname $(dirname $(dirname $(dirname "$report"))))))" >> $GITHUB_STEP_SUMMARY
             cat "$report" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           done

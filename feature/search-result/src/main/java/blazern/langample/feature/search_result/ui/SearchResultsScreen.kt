@@ -116,6 +116,7 @@ private fun PreviewAllGood() {
                 TranslationsSet(
                     Sentence("The dog barks", Lang.EN, DataSource.TATOEBA),
                     listOf(Sentence("Der Hund bellt", Lang.DE, DataSource.TATOEBA)),
+                    listOf(TranslationsSet.QUALITY_MAX),
                 ),
                 DataSource.CHATGPT,
             )
@@ -128,6 +129,7 @@ private fun PreviewAllGood() {
                         Sentence("Der Hund sitzt", Lang.DE, DataSource.CHATGPT),
                         Sentence("Собака сидит", Lang.RU, DataSource.CHATGPT),
                     ),
+                    listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
                 ),
                 DataSource.CHATGPT,
             )
@@ -138,11 +140,12 @@ private fun PreviewAllGood() {
                     Sentence("A dog sits on a sofa and looks at me", Lang.EN, DataSource.CHATGPT),
                     listOf(
                         Sentence(
-                        "Ein Hund sitzt auf dem Sofa und guckt mich an",
-                        Lang.DE,
-                        DataSource.CHATGPT,
-                    )
+                            "Ein Hund sitzt auf dem Sofa und guckt mich an",
+                            Lang.DE,
+                            DataSource.CHATGPT,
+                        )
                     ),
+                    listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
                 ),
                 DataSource.CHATGPT,
             )

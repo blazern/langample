@@ -1,6 +1,5 @@
 package blazern.langample.data.lexical_item_details_source.kaikki
 
-import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
@@ -18,14 +17,13 @@ import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.settings.SettingsRepository
 import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-
-import org.junit.Assert.*
 import java.io.IOException
 
 class KaikkiLexicalItemDetailsSourceTest {
@@ -84,6 +82,7 @@ class KaikkiLexicalItemDetailsSourceTest {
                 TranslationsSet(
                     original = Sentence("Das ist ein Haus.", Lang.EN, DataSource.KAIKKI),
                     translations = emptyList(),
+                    translationsQualities = emptyList(),
                 ),
                 DataSource.KAIKKI
             )

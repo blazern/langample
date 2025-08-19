@@ -77,7 +77,8 @@ private fun ExamplesPreview() {
             Sentence("Mein Hund", Lang.DE, DataSource.CHATGPT),
             Sentence("Meine Hündin", Lang.DE, DataSource.CHATGPT),
             Sentence("Mein guter Hund", Lang.DE, DataSource.CHATGPT),
-        )
+        ),
+        listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
     )
     LangampleTheme {
         Column {

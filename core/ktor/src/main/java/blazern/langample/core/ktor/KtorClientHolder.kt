@@ -1,6 +1,6 @@
 package blazern.langample.core.ktor
 
-import android.util.Log
+import blazern.langample.core.logging.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
@@ -31,13 +31,13 @@ class KtorClientHolder(
         }
         HttpResponseValidator {
             handleResponseExceptionWithRequest { exception, request ->
-//                Log.e("KtorClientHolder", "Ktor error for ${request.url}", exception)
+                Log.e("KtorClientHolder", exception) { "Ktor error for ${request.url}" }
             }
         }
         install(Logging) {
             logger = object : Logger {
                 override fun log(message: String) {
-//                    Log.i("KtorClientHolder", message)
+                    Log.i("KtorClientHolder") { message }
                 }
             }
             level = LogLevel.ALL

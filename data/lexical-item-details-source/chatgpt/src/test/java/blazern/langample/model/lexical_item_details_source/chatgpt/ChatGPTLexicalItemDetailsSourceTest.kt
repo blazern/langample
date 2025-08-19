@@ -9,6 +9,7 @@ import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.graphql.model.LexicalItemsFromLLMQuery
 import blazern.langample.utils.FlowIterator
 import com.apollographql.apollo.ApolloClient
@@ -212,7 +213,9 @@ class ChatGPTLexicalItemDetailsSourceTest {
                     listOf(
                         Sentence("dog", Lang.EN, CHATGPT),
                         Sentence("hound", Lang.EN, CHATGPT),
-                    )),
+                    ),
+                    listOf(QUALITY_MAX, QUALITY_MAX),
+                ),
                 CHATGPT,
             ),
             translations,
@@ -228,7 +231,9 @@ class ChatGPTLexicalItemDetailsSourceTest {
                     listOf(
                         Sentence("Hündin", Lang.DE, CHATGPT),
                         Sentence("Köter", Lang.DE, CHATGPT),
-                    )),
+                    ),
+                    listOf(QUALITY_MAX, QUALITY_MAX),
+                ),
                 CHATGPT,
             ),
             synonyms,
@@ -239,11 +244,13 @@ class ChatGPTLexicalItemDetailsSourceTest {
         val expectedSets = listOf(
             TranslationsSet(
                 Sentence("Dog", Lang.EN, CHATGPT),
-                listOf(Sentence("Hund", Lang.DE, CHATGPT))
+                listOf(Sentence("Hund", Lang.DE, CHATGPT)),
+                listOf(QUALITY_MAX),
             ),
             TranslationsSet(
                 Sentence("My dog", Lang.EN, CHATGPT),
-                listOf(Sentence("Mein Hund", Lang.DE, CHATGPT))
+                listOf(Sentence("Mein Hund", Lang.DE, CHATGPT)),
+                listOf(QUALITY_MAX),
             ),
         )
         val expectedExamples = expectedSets.map {
