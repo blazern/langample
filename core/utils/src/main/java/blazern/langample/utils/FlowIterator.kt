@@ -4,7 +4,7 @@ import arrow.core.Either
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -51,7 +51,7 @@ class FlowIterator<T>(
     suspend fun next(): T? = mutex.withLock {
         try {
             signal.send(Unit)
-        } catch (e: ClosedReceiveChannelException) {
+        } catch (e: ClosedSendChannelException) {
             hasEnded.store(true)
             return null
         }

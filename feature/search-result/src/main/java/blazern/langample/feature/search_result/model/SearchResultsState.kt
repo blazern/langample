@@ -8,6 +8,7 @@ import blazern.langample.domain.model.LexicalItemDetail.Explanation
 import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.LexicalItemDetail.Synonyms
 import blazern.langample.domain.model.LexicalItemDetail.WordTranslations
+import blazern.langample.domain.model.priority
 import blazern.langample.domain.model.toType
 import kotlin.reflect.KClass
 
@@ -24,9 +25,17 @@ internal fun SearchResultsState.add(
     clazz: KClass<out LexicalItemDetail>,
     new: LexicalItemDetailState<*>,
 ): SearchResultsState {
+    val details = detailsOfType(clazz).toMutableList()
+    val lesserPriorityIndex = details.indexOfFirst { new.source.priority < it.source.priority }
+    val insertTo = if (lesserPriorityIndex != -1) {
+        lesserPriorityIndex
+    } else {
+        details.size
+    }
+    details.add(insertTo, new)
     return copyWithNewDetails(
         clazz,
-        detailsOfType(clazz) + new
+        details,
     )
 }
 
@@ -41,7 +50,7 @@ internal fun SearchResultsState.remove(
     return result
 }
 
-internal fun SearchResultsState.remove(
+private fun SearchResultsState.remove(
     clazz: KClass<out LexicalItemDetailState<*>>,
     source: DataSource,
 ): SearchResultsState {
@@ -116,7 +125,7 @@ private fun SearchResultsState.copyWithNewDetails(
     }
 }
 
-private fun SearchResultsState.detailsOfType(
+internal fun SearchResultsState.detailsOfType(
     clazz: KClass<out LexicalItemDetail>,
 ): List<LexicalItemDetailState<out LexicalItemDetail>> {
     return when (LexicalItemDetail.toType(clazz)) {
