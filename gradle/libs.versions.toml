@@ -21,7 +21,7 @@ koin = "4.1.0"
 mockk = "1.14.5"
 coroutinesVersion = "1.10.2"
 datastore = "1.1.7"
-apollo = "4.3.2"
+apollo = "4.3.3"
 apolloKtor = "0.1.1"
 detekt = "1.23.8"
 
