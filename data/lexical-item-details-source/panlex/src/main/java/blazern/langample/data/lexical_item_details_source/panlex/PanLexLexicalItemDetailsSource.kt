@@ -127,4 +127,5 @@ private fun SentenceFields.toDomain(): Either<IllegalArgumentException, Sentence
     ))
 }
 
+@Suppress("UnusedParameter")
 private fun mapSource(remoteSource: String) = DataSource.PANLEX

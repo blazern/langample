@@ -12,12 +12,6 @@ open class LibraryPlugin : CorePlugin() {
 
         with(target) {
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-            with(pluginManager) {
-                apply(libs.findPlugin("android-library").get().get().pluginId)
-                apply(libs.findPlugin("kotlin-android").get().get().pluginId)
-                apply(libs.findPlugin("ksp").get().get().pluginId)
-            }
-
             extensions.configure(LibraryExtension::class.java) {
                 dependencies {
                     add("implementation", libs.findLibrary("androidx-core-ktx").get())

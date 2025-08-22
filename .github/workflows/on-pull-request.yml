@@ -16,14 +16,17 @@ jobs:
         with:
           cache-read-only: false
 
+      - name: Run detekt
+        run: ./gradlew detekt --continue
+
       - name: Run tests
         run: ./gradlew testDebug
 
       - name: Tests results
-        if: always()
+        if: failure()
         run: |
           for report in $(find . -path "*/build/reports/tests/*UnitTest/index.html"); do
-            echo "# $(basename $(dirname $(dirname $(dirname $(dirname $(dirname "$report"))))))" >> $GITHUB_STEP_SUMMARY
+            echo "# Test: $(basename $(dirname $(dirname $(dirname $(dirname $(dirname "$report"))))))" >> $GITHUB_STEP_SUMMARY
             cat "$report" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           done

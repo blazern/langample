@@ -17,6 +17,8 @@ java {
 dependencies {
     compileOnly(libs.android.gradlePlugin.api)
     compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.detekt.gradle.plugin)
+
     implementation(gradleKotlinDsl())
     testImplementation(libs.junit)
 }

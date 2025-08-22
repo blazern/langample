@@ -37,7 +37,6 @@ class KaikkiLexicalItemDetailsSource(
                     { emit(Left(it)) },
                     {
                         for (entry in it) {
-                            // TODO: do something if no acceptable forms were found... show all of them?
                             val acceptableFormsTags = settings.getTatoebaAcceptableTagsSets()
                             val formsStrs = mutableListOf<String>()
                             for (forms in entry.forms) {
