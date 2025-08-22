@@ -59,6 +59,7 @@ private fun subwiktionaryOf(lang: Lang): String {
         Lang.RU -> "ruwiktionary/Русский"
         Lang.EN -> "dictionary/English"
         Lang.DE -> "dewiktionary/Deutsch"
+        Lang.FR -> "frwiktionary/Français"
     }
 }
 

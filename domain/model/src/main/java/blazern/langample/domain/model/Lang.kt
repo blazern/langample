@@ -10,6 +10,7 @@ enum class Lang(
     RU("ru", "rus"),
     EN("en", "eng"),
     DE("de", "deu"),
+    FR("fr", "fra"),
     ;
 
     companion object {
@@ -27,5 +28,6 @@ val Lang.strRsc: Int
             Lang.RU -> R.string.general_lang_ru
             Lang.EN -> R.string.general_lang_en
             Lang.DE -> R.string.general_lang_de
+            Lang.FR -> R.string.general_lang_fr
         }
     }
