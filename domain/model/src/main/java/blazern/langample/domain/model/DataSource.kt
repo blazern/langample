@@ -20,3 +20,13 @@ val DataSource.strRsc: Int
             DataSource.PANLEX -> R.string.general_data_source_panlex
         }
     }
+
+val DataSource.priority: Int
+    get() {
+        return when (this) {
+            DataSource.TATOEBA -> 1
+            DataSource.CHATGPT -> 10
+            DataSource.KAIKKI -> 5
+            DataSource.PANLEX -> 0
+        }
+    }
