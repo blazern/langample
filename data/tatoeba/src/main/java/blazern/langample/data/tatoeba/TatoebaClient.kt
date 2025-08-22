@@ -14,6 +14,7 @@ import io.ktor.client.request.parameter
 class TatoebaClient(
     private val ktorClientHolder: KtorClientHolder,
 )  {
+    @Suppress("TooGenericExceptionCaught")
     suspend fun search(
         query: String,
         langFrom: Lang,

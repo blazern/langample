@@ -22,6 +22,7 @@ val DataSource.strRsc: Int
     }
 
 val DataSource.priority: Int
+    @Suppress("MagicNumber")
     get() {
         return when (this) {
             DataSource.TATOEBA -> 1

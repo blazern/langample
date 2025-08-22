@@ -21,6 +21,7 @@ class KaikkiClient(
         prettyPrint = true
     }
 
+    @Suppress("TooGenericExceptionCaught")
     suspend fun search(
         query: String,
         langFrom: Lang,
@@ -30,7 +31,6 @@ class KaikkiClient(
         }
         return withContext(cpuDispatcher) {
             try {
-                // TODO: test
                 var result = ktorClientHolder.client.get(queryToUrl(query))
                 if (result.status == HttpStatusCode.NotFound) {
                     val updatedQuery = if (query.firstOrNull()?.isUpperCase() == true) {

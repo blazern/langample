@@ -27,6 +27,7 @@ class FlowIterator<T>(
     private val values = Channel<Either<Throwable, T?>>(Channel.RENDEZVOUS)
     private val hasEnded = AtomicBoolean(false)
 
+    @Suppress("TooGenericExceptionCaught")
     private val job: Job = scope.launch {
         try {
             signal.receive()
@@ -48,6 +49,7 @@ class FlowIterator<T>(
      * @return null if the flow has finished
      * @throws Throwable - whatever the flow has thrown
      */
+    @Suppress("SwallowedException")
     suspend fun next(): T? = mutex.withLock {
         try {
             signal.send(Unit)

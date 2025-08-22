@@ -27,12 +27,6 @@ import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.strRsc
 import blazern.langample.theme.LangampleTheme
 
-internal data class SentenceData(
-    val sentence: Sentence,
-    val backgroundColor: Color,
-    val textColor: Color = Color.Unspecified,
-)
-
 @Composable
 internal fun SentencesCard(
     sentences: List<SentenceData>,
@@ -68,6 +62,12 @@ internal fun SentencesCard(
         }
     }
 }
+
+internal data class SentenceData(
+    val sentence: Sentence,
+    val backgroundColor: Color,
+    val textColor: Color = Color.Unspecified,
+)
 
 @Preview
 @Composable

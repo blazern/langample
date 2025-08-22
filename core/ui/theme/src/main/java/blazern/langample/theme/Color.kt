@@ -1,3 +1,4 @@
+@file:Suppress("MagicNumber")
 package blazern.langample.theme
 
 import androidx.compose.ui.graphics.Color

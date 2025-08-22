@@ -28,12 +28,11 @@ import java.io.IOException
 
 class KaikkiLexicalItemDetailsSourceTest {
     private val kaikkiClient = mockk<KaikkiClient>()
-    private val settings = mockk<SettingsRepository>()
+    private val settings = mockk<SettingsRepository> {
+        coEvery { getTatoebaAcceptableTagsSets() } returns listOf(setOf("plural"))
+    }
     private val source: LexicalItemDetailsSource =
         KaikkiLexicalItemDetailsSource(kaikkiClient, settings)
-
-    private val acceptableTags = listOf(setOf("plural"))
-        .also { coEvery { settings.getTatoebaAcceptableTagsSets() } returns it }
 
     private val entry = Entry(
         word = "Haus",

@@ -13,19 +13,13 @@ import blazern.langample.domain.model.priority
 import blazern.langample.domain.model.toClass
 import blazern.langample.feature.search_result.model.LexicalItemDetailState
 import blazern.langample.feature.search_result.model.detailsOfType
-import kotlinx.coroutines.Dispatchers
+import blazern.langample.test_utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.test.TestDispatcher
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestWatcher
-import org.junit.runner.Description
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -134,19 +128,5 @@ private class FakeLexicalItemDetailsSource(
         langTo: Lang,
     ): LexicalItemDetailsFlow = flow {
         details.forEach { emit(Right(it)) }
-    }
-}
-
-// TODO: move out into a special tests-only module
-@OptIn(ExperimentalCoroutinesApi::class)
-class MainDispatcherRule(
-    val testDispatcher: TestDispatcher = UnconfinedTestDispatcher(),
-) : TestWatcher() {
-    override fun starting(description: Description) {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    override fun finished(description: Description) {
-        Dispatchers.resetMain()
     }
 }

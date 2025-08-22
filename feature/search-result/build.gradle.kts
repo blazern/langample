@@ -11,4 +11,5 @@ dependencies {
     implementation(project(":core:utils"))
     implementation(project(":data:lexical-item-details-source:api"))
     implementation(kotlin("reflect"))
+    testImplementation(project(":core:test-utils"))
 }
