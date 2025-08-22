@@ -1,6 +1,8 @@
-package blazern.langample.core.ui.searchbar
+package blazern.langample.core.ui.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,7 +57,7 @@ fun SearchBar(
 @PreviewScreenSizes
 @Preview(device = PIXEL_3A_XL, name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
-fun Preview() {
+private fun Preview() {
     LangampleTheme {
         SearchBar(
             "Search query",

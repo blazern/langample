@@ -4,11 +4,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import blazern.langample.core.strings.R
+import blazern.langample.core.ui.components.Expandable
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 
@@ -35,17 +47,41 @@ internal fun ListItemSubtypeLoadedSentences(
     modifier: Modifier = Modifier,
 ) {
     Box {
-        FlowRow(modifier = modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
-            for (sentence in sentences) {
-                Box(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .clickable { callbacks.onTextCopy(sentence.text) }
-                ) {
-                    Text(
-                        sentence.text,
-                        color = textColor
-                    )
+        Expandable(
+            collapsedMaxHeight = 145.dp,
+            control = { expanded, canExpand, onToggle ->
+                if (canExpand) {
+                    IconButton(
+                        onClick = onToggle,
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Filled.Close else Icons.Filled.Add,
+                            contentDescription = if (expanded) {
+                                stringResource(R.string.general_expand)
+                            } else {
+                                stringResource(R.string.general_collapse)
+                            }
+                        )
+                    }
+                }
+            },
+        ) {
+            FlowRow(modifier = modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
+                for (sentence in sentences) {
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clickable { callbacks.onTextCopy(sentence.text) }
+                    ) {
+                        Text(
+                            sentence.text,
+                            color = textColor
+                        )
+                    }
                 }
             }
         }

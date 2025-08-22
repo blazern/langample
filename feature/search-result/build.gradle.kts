@@ -8,6 +8,7 @@ android {
 
 dependencies {
     implementation(project(":core:ui:theme"))
+    implementation(project(":core:ui:components"))
     implementation(project(":core:utils"))
     implementation(project(":data:lexical-item-details-source:api"))
     implementation(kotlin("reflect"))

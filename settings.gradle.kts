@@ -24,7 +24,7 @@ rootProject.name = "langample"
 include(":app")
 include(":core:ui:theme")
 include(":feature:home")
-include(":core:ui:searchbar")
+include(":core:ui:components")
 include(":core:strings")
 include(":feature:search-result")
 include(":data:tatoeba")
