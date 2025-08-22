@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "blazern.langample.core.ui.searchbar"
+    namespace = "blazern.langample.core.ui.components"
 }
 
 dependencies {

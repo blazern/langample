@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import blazern.langample.core.strings.R as RL
-import blazern.langample.core.ui.searchbar.SearchBar
+import blazern.langample.core.ui.components.SearchBar
 import blazern.langample.domain.model.Lang
 import blazern.langample.feature.home.R
 import blazern.langample.feature.home.SearchFn
