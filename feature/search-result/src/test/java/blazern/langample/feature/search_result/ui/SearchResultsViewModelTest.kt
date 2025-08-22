@@ -71,12 +71,12 @@ class SearchResultsViewModelTest {
         // Every type of DataSource
         val sources = DataSource.entries.map { source ->
             var details = mutableListOf<LexicalItemDetail>()
-            details += List(detailsMultiplier) { LexicalItemDetail.Forms("forms", source) }
-            details += List(detailsMultiplier) { LexicalItemDetail.Explanation("Wörter", source)}
+            details += List(detailsMultiplier) { LexicalItemDetail.Forms("forms $detailsMultiplier $it", source) }
+            details += List(detailsMultiplier) { LexicalItemDetail.Explanation("Wörter $detailsMultiplier $it", source)}
             details += List(detailsMultiplier) {
                 LexicalItemDetail.WordTranslations(
                     TranslationsSet(
-                        original = Sentence("text", Lang.EN, source),
+                        original = Sentence("text $detailsMultiplier $it", Lang.EN, source),
                         translations = listOf(Sentence("Text", Lang.DE, source)),
                         translationsQualities = listOf(QUALITY_MAX),
                     ),
@@ -86,7 +86,7 @@ class SearchResultsViewModelTest {
             details += List(detailsMultiplier) {
                 LexicalItemDetail.Synonyms(
                     TranslationsSet(
-                        original = Sentence("text", Lang.EN, source),
+                        original = Sentence("text $detailsMultiplier $it", Lang.EN, source),
                         translations = listOf(Sentence("string", Lang.EN, source)),
                         translationsQualities = listOf(QUALITY_MAX),
                     ),
@@ -96,7 +96,7 @@ class SearchResultsViewModelTest {
             details += List(detailsMultiplier) {
                 LexicalItemDetail.Example(
                     TranslationsSet(
-                        original = Sentence("nice text", Lang.EN, source),
+                        original = Sentence("nice text $detailsMultiplier $it", Lang.EN, source),
                         translations = listOf(Sentence("schöner Text", Lang.DE, source)),
                         translationsQualities = listOf(QUALITY_MAX),
                     ),

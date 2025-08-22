@@ -4,9 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -16,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
@@ -24,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import blazern.langample.core.strings.R
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
@@ -66,12 +74,15 @@ internal fun SearchResultsScreen(
             SnackbarHost(hostState = snackbarHostState)
         },
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             Box(Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.primary)
-                .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+                .statusBarsPadding()
+                .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
+                .zIndex(1f), // Because items of [FoundSearchResults] somehow are drawn on top otherwise
             ) {
                 FlowRow {
                     Text(
