@@ -4,6 +4,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
+import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource.PANLEX
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -33,7 +34,10 @@ import org.junit.Test
 class PanLexLexicalItemDetailsSourceTest {
     private val apolloClient = mockk<ApolloClient>()
     private val holder = mockk<LangampleApolloClientHolder>()
-    private val source = PanLexLexicalItemDetailsSource(holder)
+    private val source = PanLexLexicalItemDetailsSource(
+        holder,
+        LexicalItemDetailsSourceCacher.NOOP,
+    )
 
     init {
         every { holder.client } returns apolloClient
@@ -195,7 +199,7 @@ class PanLexLexicalItemDetailsSourceTest {
         )
 
         val flow = source.request("Haus", Lang.DE, Lang.EN)
-        val iter = FlowIterator(flow, this)
+        val iter = FlowIterator(flow)
         assertTrue(iter.next() is Left)   // network error
         assertTrue(iter.next() is Right)  // success afterwards
         iter.close()
@@ -206,7 +210,7 @@ class PanLexLexicalItemDetailsSourceTest {
         coEvery { apolloClient.query(any<LexicalItemsFromPanLexQuery>()).execute() } returns graphqlErrorsResponse()
 
         val flow = source.request("Haus", Lang.DE, Lang.EN)
-        val iter = FlowIterator(flow, this)
+        val iter = FlowIterator(flow)
         assertTrue(iter.next() is Left)
         iter.close()
     }

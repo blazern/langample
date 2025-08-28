@@ -1,7 +1,10 @@
 package blazern.langample.utils
 
 import arrow.core.Either
+import arrow.core.Either.Left
+import arrow.core.Either.Right
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
@@ -12,64 +15,49 @@ import kotlinx.coroutines.sync.withLock
 import java.io.Closeable
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.coroutines.coroutineContext
 
 /**
  * NOTE: could contain tricky concurrency bugs
  */
 @OptIn(ExperimentalAtomicApi::class)
-class FlowIterator<T>(
-    private val flow: Flow<T>,
-    private val scope: CoroutineScope
+class FlowIterator<T>
+private constructor(
+    private val signal: Channel<Unit>,
+    private val values: Channel<Either<Throwable, T?>>,
+    private val job: Job,
+    private val hasEnded: AtomicBoolean,
+    private val scope: CoroutineScope,
 ) : Closeable {
 
     private val mutex = Mutex()
-    private val signal = Channel<Unit>(Channel.RENDEZVOUS)
-    private val values = Channel<Either<Throwable, T?>>(Channel.RENDEZVOUS)
-    private val hasEnded = AtomicBoolean(false)
-
-    @Suppress("TooGenericExceptionCaught")
-    private val job: Job = scope.launch {
-        try {
-            signal.receive()
-            flow.collect { v ->
-                values.send(Either.Right(v))
-                signal.receive()
-            }
-            hasEnded.store(true)
-            values.send(Either.Right(null))
-        } catch (t: Throwable) {
-            values.trySend(Either.Left(t))
-        } finally {
-            values.close()
-            signal.close()
-        }
-    }
 
     /**
      * @return null if the flow has finished
      * @throws Throwable - whatever the flow has thrown
      */
-    @Suppress("SwallowedException")
     suspend fun next(): T? = mutex.withLock {
+        // If a previous consumer was cancelled after requesting,
+        // the producer may have already placed the response here.
+        values.tryReceive().getOrNull()?.let {
+            return when (it) {
+                is Left -> throw it.value
+                is Right -> it.value
+            }
+        }
+
         try {
             signal.send(Unit)
-        } catch (e: ClosedSendChannelException) {
+        } catch (_: ClosedSendChannelException) {
             hasEnded.store(true)
             return null
         }
 
-        val result = values.receive()
-        return result.fold(
-            { throw it },
-            { it }
-        )
-    }
-
-    override fun close() {
-        hasEnded.store(true)
-        job.cancel()
-        signal.close()
-        values.close()
+        val r = when (val r = values.receive()) {
+            is Left -> throw r.value
+            is Right -> r.value
+        }
+        return r
     }
 
     /**
@@ -79,4 +67,49 @@ class FlowIterator<T>(
      * but `next` was not called yet.
      */
     fun hasEnded(): Boolean = hasEnded.load()
+
+    override fun close() {
+        hasEnded.store(true)
+        job.cancel()
+        signal.close()
+        values.close()
+    }
+
+    companion object {
+        /**
+         * @param coroutineScope if not passed, the iterator will create a
+         * collector job is a **child of the caller's coroutine**.
+         */
+        suspend operator fun <T> invoke(
+            flow: Flow<T>,
+            coroutineScope: CoroutineScope? = null,
+        ): FlowIterator<T> {
+            val signal = Channel<Unit>(Channel.RENDEZVOUS)
+            val values = Channel<Either<Throwable, T?>>(Channel.BUFFERED)
+            val hasEnded = AtomicBoolean(false)
+
+            // Bind to the caller's context (implicit scope)
+            val scope = coroutineScope ?: CoroutineScope(coroutineContext)
+
+            @Suppress("TooGenericExceptionCaught")
+            val job = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                try {
+                    signal.receive()
+                    flow.collect {
+                        values.send(Right(it))
+                        signal.receive()
+                    }
+                    hasEnded.store(true)
+                    values.trySend(Right(null))
+                } catch (t: Throwable) {
+                    values.trySend(Left(t))
+                } finally {
+                    values.close()
+                    signal.close()
+                }
+            }
+
+            return FlowIterator(signal, values, job, hasEnded, scope)
+        }
+    }
 }

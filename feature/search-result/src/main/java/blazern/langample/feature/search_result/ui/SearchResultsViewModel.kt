@@ -39,16 +39,18 @@ internal class SearchResultsViewModel(
     val state: StateFlow<SearchResultsState> = _state
 
     init {
-        search(startQuery)
+        viewModelScope.launch {
+            search(startQuery)
+        }
     }
 
-    private fun search(query: String) {
+    private suspend fun search(query: String) {
         _state.value = SearchResultsState()
         for (dataSource in dataSources) {
             val source = dataSource.source
             sourceTypes[source] = dataSource.types
             val flow = dataSource.request(query, langFrom, langTo)
-            dataIters[source] = FlowIterator(flow, viewModelScope)
+            dataIters[source] = FlowIterator(flow)
             addLoadingsFor<LexicalItemDetail>(source)
         }
     }

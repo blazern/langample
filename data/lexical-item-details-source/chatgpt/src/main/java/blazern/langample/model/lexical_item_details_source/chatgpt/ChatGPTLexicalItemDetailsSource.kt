@@ -7,6 +7,7 @@ import arrow.core.getOrElse
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -21,6 +22,7 @@ import java.io.IOException
 
 class ChatGPTLexicalItemDetailsSource(
     private val apolloClientHolder: LangampleApolloClientHolder,
+    private val cacher: LexicalItemDetailsSourceCacher,
 ) : LexicalItemDetailsSource {
     private val apollo: ApolloClient
         get() = apolloClientHolder.client
@@ -38,18 +40,24 @@ class ChatGPTLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang
-    ): LexicalItemDetailsFlow {
-        return flow {
-            while (true) {
-                val result = apolloRequest(query, langFrom, langTo)
-                result.fold(
-                    { emit(Left(it)) },
-                    {
-                        it.forEach { emit(Right(it)) }
-                        return@flow
-                    }
-                )
-            }
+    ): LexicalItemDetailsFlow = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
+        requestImpl(query, langFrom, langTo)
+    }
+
+    private fun requestImpl(
+        query: String,
+        langFrom: Lang,
+        langTo: Lang
+    ): LexicalItemDetailsFlow = flow {
+        while (true) {
+            val result = apolloRequest(query, langFrom, langTo)
+            result.fold(
+                { emit(Left(it)) },
+                {
+                    it.forEach { emit(Right(it)) }
+                    return@flow
+                }
+            )
         }
     }
 

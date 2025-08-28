@@ -3,6 +3,7 @@ package blazern.langample.model.lexical_item_details_source.tatoeba
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
+import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.tatoeba.TatoebaClient
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
@@ -25,7 +26,10 @@ import kotlin.test.assertTrue
 
 class TatoebaLexicalItemDetailsSourceTest {
     private val tatoeba = mockk<TatoebaClient>()
-    private val source = TatoebaLexicalItemDetailsSource(tatoeba)
+    private val source = TatoebaLexicalItemDetailsSource(
+        tatoeba,
+        LexicalItemDetailsSourceCacher.NOOP,
+    )
 
     private val translationsSets = listOf(
         TranslationsSet(
@@ -68,7 +72,7 @@ class TatoebaLexicalItemDetailsSourceTest {
         // Bad
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE) } returns Left(IOException())
         val flow = source.request("hello", Lang.EN, Lang.DE)
-        val iter = FlowIterator(flow, this)
+        val iter = FlowIterator(flow)
         assertTrue { iter.next() is Left }
 
         // Good

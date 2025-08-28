@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(project(":data:lexical-item-details-source:api"))
+    implementation(project(":data:lexical-item-details-source:cache"))
     implementation(project(":data:kaikki"))
     implementation(project(":core:utils"))
     implementation(project(":domain:settings"))
