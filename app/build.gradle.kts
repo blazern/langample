@@ -69,6 +69,7 @@ dependencies {
     implementation(project(":data:tatoeba"))
     implementation(project(":data:langample-graphql"))
     implementation(project(":data:kaikki"))
+    implementation(project(":data:lexical-item-details-source:cache"))
     implementation(project(":data:lexical-item-details-source:tatoeba"))
     implementation(project(":data:lexical-item-details-source:chatgpt"))
     implementation(project(":data:lexical-item-details-source:kaikki"))

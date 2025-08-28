@@ -4,6 +4,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
+import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource.CHATGPT
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -33,7 +34,10 @@ import org.junit.Test
 class ChatGPTLexicalItemDetailsSourceTest {
     private val apolloClient = mockk<ApolloClient>()
     private val holder = mockk<LangampleApolloClientHolder>()
-    private val source  = ChatGPTLexicalItemDetailsSource(holder)
+    private val source  = ChatGPTLexicalItemDetailsSource(
+        holder,
+        LexicalItemDetailsSourceCacher.NOOP,
+    )
 
     init {
         every { holder.client } returns apolloClient
@@ -268,7 +272,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
         )
 
         val flow = source.request("dog", Lang.EN, Lang.DE)
-        val iter = FlowIterator(flow, this)
+        val iter = FlowIterator(flow)
         assertTrue(iter.next() is Left)
         assertTrue(iter.next() is Right)
         iter.close()
@@ -279,7 +283,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
         coEvery { apolloClient.query(any<LexicalItemsFromLLMQuery>()).execute() } returns graphqlErrorsResponse()
 
         val flow = source.request("dog", Lang.EN, Lang.DE)
-        val iter = FlowIterator(flow, this)
+        val iter = FlowIterator(flow)
         assertTrue(iter.next() is Left)
         iter.close()
     }
