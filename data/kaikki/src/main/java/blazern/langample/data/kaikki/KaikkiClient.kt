@@ -40,6 +40,9 @@ class KaikkiClient(
                     }
                     result = ktorClientHolder.client.get(queryToUrl(updatedQuery))
                 }
+                if (result.status == HttpStatusCode.NotFound) {
+                    return@withContext Either.Right(emptyList())
+                }
                 val entries = result
                     .bodyAsText()
                     .lineSequence()

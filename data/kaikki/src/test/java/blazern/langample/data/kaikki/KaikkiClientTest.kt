@@ -157,7 +157,7 @@ class KaikkiClientTest {
         var callCount = 0
         setResponse {
             callCount++
-            Either.Right(Pair(HttpStatusCode.NotFound, ""))
+            Either.Right(Pair(HttpStatusCode.NotFound, "Page Not Found"))
         }
 
         val result = kaikki.search("unfindable", Lang.DE)
