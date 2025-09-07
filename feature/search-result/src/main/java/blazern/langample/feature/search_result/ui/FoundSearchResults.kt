@@ -49,8 +49,8 @@ internal fun FoundSearchResults(
                     state.synonyms.size +
                     state.explanations.size
         }
-        val primary = MaterialTheme.colorScheme.primary
-        val background = MaterialTheme.colorScheme.background
+        val primary = MaterialTheme.colorScheme.surface
+        val background = MaterialTheme.colorScheme.surfaceContainer
 
         LazyColumn(
             state = listState,

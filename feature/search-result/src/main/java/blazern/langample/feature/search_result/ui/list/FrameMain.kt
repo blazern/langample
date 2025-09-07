@@ -30,7 +30,7 @@ internal inline fun <reified D : LexicalItemDetail> FrameMain(
 ) {
     val target = LexicalItemDetail.toType(D::class)
     val (color, textColor) = if (detailState !is LexicalItemDetailState.Error) {
-        MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary
+        MaterialTheme.colorScheme.surface to MaterialTheme.colorScheme.onSurface
     } else {
         MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.onError
     }
