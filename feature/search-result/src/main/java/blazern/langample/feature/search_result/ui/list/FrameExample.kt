@@ -25,7 +25,7 @@ internal fun FrameExample(
     content: @Composable (textColor: Color)->Unit,
 ) {
     val (frameColor, textColor) = when (detailState) {
-        is Loading<*> -> MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary
+        is Loading<*> -> MaterialTheme.colorScheme.surface to MaterialTheme.colorScheme.onSurface
         is Loaded<*> -> Color.Transparent to Color.Transparent
         is Error<*> -> MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.onError
     }

@@ -33,9 +33,9 @@ internal fun ListItemSubtypeLoadedExample(
     Column(modifier) {
         sentences.forEachIndexed { index, sentence ->
             val (color, textColor) = if (index == 0) {
-                MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary
+                MaterialTheme.colorScheme.surface to MaterialTheme.colorScheme.onSurface
             } else {
-                MaterialTheme.colorScheme.secondary to MaterialTheme.colorScheme.onSecondary
+                MaterialTheme.colorScheme.surfaceDim to MaterialTheme.colorScheme.onSurface
             }
             SentenceLine(
                 sentence,

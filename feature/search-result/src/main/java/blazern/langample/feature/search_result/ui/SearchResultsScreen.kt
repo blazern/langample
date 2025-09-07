@@ -79,7 +79,7 @@ internal fun SearchResultsScreen(
         Column(modifier = Modifier.padding(innerPadding)) {
             Box(Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.surface)
                 .statusBarsPadding()
                 .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
                 .zIndex(1f), // Because items of [FoundSearchResults] somehow are drawn on top otherwise
@@ -89,13 +89,13 @@ internal fun SearchResultsScreen(
                         stringResource(R.string.search_results_title) + " ",
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         query,
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
