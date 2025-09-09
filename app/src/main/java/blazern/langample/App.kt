@@ -58,7 +58,6 @@ private val LexicalItemDetailsSources = module {
     single {
         KaikkiLexicalItemDetailsSource(
             kaikkiClient = get(),
-            settings = get(),
             cacher = get(),
         )
     }.bind(LexicalItemDetailsSource::class)

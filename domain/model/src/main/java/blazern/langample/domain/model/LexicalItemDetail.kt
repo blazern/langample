@@ -14,9 +14,14 @@ sealed class LexicalItemDetail(
     open val source: DataSource,
 ) {
     data class Forms(
-        val text: String,
+        val value: Value,
         override val source: DataSource,
-    ) : LexicalItemDetail(Type.FORMS, source)
+    ) : LexicalItemDetail(Type.FORMS, source) {
+        sealed class Value {
+            data class Text(val text: String) : Value()
+            data class Detailed(val forms: List<WordForm>) : Value()
+        }
+    }
 
     data class WordTranslations(
         val translationsSet: TranslationsSet,

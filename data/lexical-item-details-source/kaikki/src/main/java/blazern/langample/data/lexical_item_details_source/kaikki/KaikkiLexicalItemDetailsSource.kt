@@ -14,14 +14,12 @@ import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Explanation
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
-import blazern.langample.domain.settings.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 
 class KaikkiLexicalItemDetailsSource(
     private val kaikkiClient: KaikkiClient,
-    private val settings: SettingsRepository,
     private val cacher: LexicalItemDetailsSourceCacher,
 ) : LexicalItemDetailsSource {
     override val source = DataSource.KAIKKI
@@ -58,7 +56,7 @@ class KaikkiLexicalItemDetailsSource(
                 val formsOf = entry.senses.map { it.formOf }.flatten()
                 val purelyWordForm = formsOf.size == entry.senses.size
                 if (!purelyWordForm) {
-                    val details = toDetails(entry, langTo)
+                    val details = toDetails(entry, langFrom, langTo)
                     details.forEach {
                         emit(Right(it))
                     }
@@ -72,20 +70,18 @@ class KaikkiLexicalItemDetailsSource(
         }
     }
 
-    private suspend fun toDetails(entry: Entry, langTo: Lang): List<LexicalItemDetail> {
+    private fun toDetails(
+        entry: Entry,
+        langFrom: Lang,
+        langTo: Lang,
+    ): List<LexicalItemDetail> {
         var result = mutableListOf<LexicalItemDetail>()
-        val acceptableFormsTags = settings.getTatoebaAcceptableTagsSets()
-        val formsStrs = mutableListOf<String>()
-        for (forms in entry.forms) {
-            if (acceptableFormsTags.contains(forms.tags?.toSet())) {
-                if (forms.form.isNotBlank()) {
-                    formsStrs += forms.form
-                }
-            }
-        }
-        if (formsStrs.isNotEmpty()) {
+
+        if (entry.forms.isNotEmpty()) {
             result += LexicalItemDetail.Forms(
-                formsStrs.joinToString(", "),
+                LexicalItemDetail.Forms.Value.Detailed(
+                    entry.forms.map { it.toDomain(langFrom) }
+                ),
                 source,
             )
         }

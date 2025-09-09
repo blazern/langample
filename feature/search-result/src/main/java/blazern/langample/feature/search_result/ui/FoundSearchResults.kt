@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -114,7 +113,10 @@ private inline fun <reified D : LexicalItemDetail> LazyListScope.lexicalDetailsI
 @Composable
 private fun Preview() {
     val state = SearchResultsState(
-        forms = listOf(LexicalItemDetailState.Loaded(Forms("der Hund, -e", DataSource.CHATGPT))),
+        forms = listOf(LexicalItemDetailState.Loaded(Forms(
+            Forms.Value.Text("der Hund, -e"),
+            DataSource.CHATGPT,
+        ))),
         explanations = listOf(LexicalItemDetailState.Loaded(Explanation("Hund is Dog", DataSource.CHATGPT))),
         examples = listOf(
             LexicalItemDetailState.Loaded(Example(

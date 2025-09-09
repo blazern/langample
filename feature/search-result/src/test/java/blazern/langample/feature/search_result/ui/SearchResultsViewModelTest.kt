@@ -6,9 +6,11 @@ import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetails
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
+import blazern.langample.domain.model.WordForm
 import blazern.langample.domain.model.priority
 import blazern.langample.domain.model.toClass
 import blazern.langample.feature.search_result.model.LexicalItemDetailState
@@ -65,13 +67,78 @@ class SearchResultsViewModelTest {
         }
     }
 
+    @Test
+    fun `forms are filtered and sources with zero accepted forms are dropped`()
+    = runTest(mainDispatcherRule.testDispatcher) {
+        val sourceAccepted = DataSource.entries[0]
+        val sourceRejected = DataSource.entries[1]
+
+        val acceptedForms = listOf(
+            WordForm("tanzt", emptyList(), Lang.DE),
+            WordForm("die tanzen", emptyList(), Lang.DE),
+            WordForm("haben or sein", listOf(WordForm.Tag.Defined.Auxiliary("auxiliary")), Lang.DE),
+            WordForm("tanzt", emptyList(), Lang.DE),
+        )
+        val acceptedDetail = Forms(
+            Forms.Value.Detailed(acceptedForms),
+            sourceAccepted,
+        )
+
+        val rejectedForms = listOf(
+            WordForm("habe getanzt", emptyList(), Lang.DE),
+            WordForm("haben or sein", listOf(WordForm.Tag.Defined.Auxiliary("auxiliary")), Lang.DE),
+            WordForm("der sehr tanzt", emptyList(), Lang.DE),
+            WordForm("tanzt!", emptyList(), Lang.DE)
+        )
+        val rejectedDetail = Forms(
+            Forms.Value.Detailed(rejectedForms),
+            sourceRejected
+        )
+
+        val sources: List<LexicalItemDetailsSource> = listOf(
+            FakeLexicalItemDetailsSource(sourceAccepted, listOf(acceptedDetail)),
+            FakeLexicalItemDetailsSource(sourceRejected, listOf(rejectedDetail))
+        )
+
+        val vm = SearchResultsViewModel(
+            startQuery = "query",
+            langFrom = Lang.EN,
+            langTo = Lang.DE,
+            dataSources = sources
+        )
+
+        // Drive loading until idle
+        while (true) {
+            val loadings = vm.state.value
+                .detailsOfType(LexicalItemDetail.Forms::class)
+                .filterIsInstance<LexicalItemDetailState.Loading<*>>()
+            if (loadings.isEmpty()) break
+            loadings.forEach { vm.onLoadingDetailVisible(it) }
+            advanceUntilIdle()
+        }
+
+        val formsStates = vm.state.value.detailsOfType(Forms::class)
+        val loaded = formsStates.filterIsInstance<LexicalItemDetailState.Loaded<LexicalItemDetail>>()
+
+        assertEquals(listOf(sourceAccepted), loaded.map { it.source })
+
+        val loadedForms = loaded.single().detail as Forms
+        val value = loadedForms.value as Forms.Value.Detailed
+        assertEquals(listOf("tanzt", "die tanzen"), value.forms.map { it.textCleaned })
+    }
+
     private fun fullSourcesWithFullDetails(
         detailsMultiplier: Int = 1,
     ): List<FakeLexicalItemDetailsSource> {
         // Every type of DataSource
         val sources = DataSource.entries.map { source ->
             var details = mutableListOf<LexicalItemDetail>()
-            details += List(detailsMultiplier) { LexicalItemDetail.Forms("forms $detailsMultiplier $it", source) }
+            details += List(detailsMultiplier) {
+                LexicalItemDetail.Forms(
+                    LexicalItemDetail.Forms.Value.Text("forms $detailsMultiplier $it"),
+                    source,
+                )
+            }
             details += List(detailsMultiplier) { LexicalItemDetail.Explanation("Wörter $detailsMultiplier $it", source)}
             details += List(detailsMultiplier) {
                 LexicalItemDetail.WordTranslations(

@@ -10,6 +10,8 @@ import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetails
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.LexicalItemDetail.Forms
+import blazern.langample.domain.model.WordForm
 import blazern.langample.domain.model.toClass
 import blazern.langample.feature.search_result.model.LexicalItemDetailState
 import blazern.langample.feature.search_result.model.SearchResultsState
@@ -127,17 +129,43 @@ internal class SearchResultsViewModel(
                 )
             },
             {
-                _state.value = _state.value
-                    .remove(
-                        listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
-                        source,
-                    )
-                    .add(it::class, LexicalItemDetailState.Loaded(it))
-                    .add(it.type.toClass(),
-                        LexicalItemDetailState.Loading<LexicalItemDetail>(it.type, source),
-                )
+                val detail = transform(it)
+                if (detail != null) {
+                    _state.value = _state.value
+                        .remove(
+                            listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
+                            source,
+                        )
+                        .add(it::class, LexicalItemDetailState.Loaded(detail))
+                        .add(it.type.toClass(),
+                            LexicalItemDetailState.Loading<LexicalItemDetail>(detail.type, source),
+                        )
+                }
             }
         )
+    }
+
+    private fun transform(detail: LexicalItemDetail): LexicalItemDetail? {
+        if (detail is Forms) {
+            val value = detail.value
+            if (value is Forms.Value.Detailed) {
+                val forms = value.forms
+                    .filter {
+                        val wordsCount = it.textCleaned.split(" ").size
+                        val oneWord = wordsCount == 1 || (wordsCount == 2 && it.hasArticle)
+                        val onlyLetters = Regex("(\\w| )+").matches(it.textCleaned)
+                        val auxiliary = it.tags.any { it is WordForm.Tag.Defined.Auxiliary }
+                        oneWord && onlyLetters && !auxiliary
+                    }
+                    .distinctBy { it.textCleaned }
+                return if (forms.isNotEmpty()) {
+                    detail.copy(value = Forms.Value.Detailed(forms))
+                } else {
+                    null
+                }
+            }
+        }
+        return detail
     }
 
     fun <T : LexicalItemDetail> onFixErrorRequest(error: LexicalItemDetailState.Error<T>) {
