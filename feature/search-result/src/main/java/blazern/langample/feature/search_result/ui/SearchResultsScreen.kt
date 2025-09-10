@@ -119,7 +119,10 @@ internal fun SearchResultsScreen(
 @Composable
 private fun PreviewAllGood() {
     val state = SearchResultsState(
-        forms = listOf(LexicalItemDetailState.Loaded(Forms("der Hund, -e", DataSource.CHATGPT))),
+        forms = listOf(LexicalItemDetailState.Loaded(Forms(
+            Forms.Value.Text("der Hund, -e"),
+            DataSource.CHATGPT),
+        )),
         explanations = listOf(LexicalItemDetailState.Loaded(Explanation("Hund is Dog", DataSource.CHATGPT))),
         examples = listOf(
             LexicalItemDetailState.Loaded(

@@ -14,8 +14,12 @@ import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetai
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.WordForm
+import blazern.langample.domain.model.WordForm.Tag.Defined.Plural
+import blazern.langample.domain.model.WordForm.Tag.Defined.Singular
 import blazern.langample.domain.settings.SettingsRepository
 import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
@@ -30,12 +34,8 @@ import java.io.IOException
 
 class KaikkiLexicalItemDetailsSourceTest {
     private val kaikkiClient = mockk<KaikkiClient>()
-    private val settings = mockk<SettingsRepository> {
-        coEvery { getTatoebaAcceptableTagsSets() } returns listOf(setOf("plural"))
-    }
     private val source: LexicalItemDetailsSource = KaikkiLexicalItemDetailsSource(
         kaikkiClient,
-        settings,
         LexicalItemDetailsSourceCacher.NOOP,
     )
 
@@ -54,7 +54,8 @@ class KaikkiLexicalItemDetailsSourceTest {
             )
         ),
         forms = listOf(
-            Form("Häuser", tags = listOf("plural"))
+            Form("das Haus", tags = listOf("singular")),
+            Form("Häuser", tags = listOf("plural")),
         )
     )
 
@@ -80,7 +81,13 @@ class KaikkiLexicalItemDetailsSourceTest {
             .map { it.getOrElse { throw it } }
 
         val expected = listOf(
-            LexicalItemDetail.Forms("Häuser", DataSource.KAIKKI),
+            Forms(
+                Forms.Value.Detailed(listOf(
+                    WordForm("das Haus", listOf(Singular("singular")), Lang.DE),
+                    WordForm("Häuser", listOf(Plural("plural")), Lang.DE),
+                )),
+                DataSource.KAIKKI,
+            ),
             LexicalItemDetail.Explanation("house; building", DataSource.KAIKKI),
             LexicalItemDetail.Example(
                 TranslationsSet(
@@ -157,7 +164,12 @@ class KaikkiLexicalItemDetailsSourceTest {
 
         // Expect ONLY the parent
         val expected = listOf(
-            LexicalItemDetail.Forms("Häuser", DataSource.KAIKKI),
+            Forms(
+                Forms.Value.Detailed(listOf(
+                    WordForm("Häuser", listOf(Plural("plural")), Lang.DE),
+                )),
+                DataSource.KAIKKI,
+            ),
             LexicalItemDetail.Explanation("house; building", DataSource.KAIKKI),
             LexicalItemDetail.Example(
                 TranslationsSet(

@@ -8,6 +8,7 @@ import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetai
 import blazern.langample.domain.model.DataSource.CHATGPT
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
@@ -200,10 +201,10 @@ class ChatGPTLexicalItemDetailsSourceTest {
         )
 
         val forms = details
-            .filterIsInstance<LexicalItemDetail.Forms>()
+            .filterIsInstance<Forms>()
             .single()
         assertEquals(
-            LexicalItemDetail.Forms("der Hund, -e", CHATGPT),
+            Forms(Forms.Value.Text("der Hund, -e"), CHATGPT),
             forms,
         )
 

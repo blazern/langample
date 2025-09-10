@@ -2,7 +2,6 @@ package blazern.langample.feature.search_result.ui.list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,11 +17,16 @@ internal fun ListItemSubtypeLoadedForms(
     callbacks: LexicalItemDetailCallbacks,
     modifier: Modifier = Modifier,
 ) {
+    val text = when (val value = forms.value) {
+        is LexicalItemDetail.Forms.Value.Detailed
+             -> value.forms.joinToString(", ") { it.textCleaned }
+        is LexicalItemDetail.Forms.Value.Text -> value.text
+    }
     Box(
-        modifier.clickable { callbacks.onTextCopy(forms.text) }
+        modifier.clickable { callbacks.onTextCopy(text) }
     ) {
         Text(
-            forms.text,
+            text,
             color = textColor,
             modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp)
         )

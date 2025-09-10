@@ -45,7 +45,7 @@ private fun FormsPreview() {
     LangampleTheme {
         Column {
             ListItem(Loading<Forms>(FORMS, DataSource.CHATGPT), c, m)
-            ListItem(Loaded(Forms(text, DataSource.CHATGPT)), c, m)
+            ListItem(Loaded(Forms(Forms.Value.Text(text), DataSource.CHATGPT)), c, m)
             ListItem(Error<Forms>(IOException("No internet"), DataSource.CHATGPT), c, m)
         }
     }
