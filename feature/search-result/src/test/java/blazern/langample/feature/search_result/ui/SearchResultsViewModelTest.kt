@@ -124,7 +124,7 @@ class SearchResultsViewModelTest {
 
         val loadedForms = loaded.single().detail as Forms
         val value = loadedForms.value as Forms.Value.Detailed
-        assertEquals(listOf("tanzt", "die tanzen"), value.forms.map { it.textCleaned })
+        assertEquals(listOf("tanzt", "die tanzen"), value.forms.map { it.withoutPronoun().text })
     }
 
     private fun fullSourcesWithFullDetails(

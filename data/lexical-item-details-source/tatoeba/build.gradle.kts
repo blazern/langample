@@ -9,6 +9,7 @@ android {
 dependencies {
     api(project(":data:lexical-item-details-source:api"))
     implementation(project(":data:lexical-item-details-source:cache"))
+    implementation(project(":data:lexical-item-details-source:kaikki"))
     implementation(project(":data:tatoeba"))
     implementation(project(":core:utils"))
 }

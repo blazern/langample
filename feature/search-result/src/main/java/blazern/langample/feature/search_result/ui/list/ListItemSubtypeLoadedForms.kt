@@ -19,7 +19,7 @@ internal fun ListItemSubtypeLoadedForms(
 ) {
     val text = when (val value = forms.value) {
         is LexicalItemDetail.Forms.Value.Detailed
-             -> value.forms.joinToString(", ") { it.textCleaned }
+             -> value.forms.joinToString(", ") { it.withoutPronoun().text }
         is LexicalItemDetail.Forms.Value.Text -> value.text
     }
     Box(
