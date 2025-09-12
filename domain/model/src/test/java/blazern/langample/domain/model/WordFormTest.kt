@@ -7,29 +7,31 @@ import kotlin.test.assertTrue
 
 class WordFormTest {
     @Test
-    fun `cleaned text does not contain pronouns`() {
+    fun `text without pronouns`() {
         val wf1 = WordForm("ich tanze", emptyList(), Lang.DE)
-        assertEquals("tanze", wf1.textCleaned)
+        assertEquals("tanze", wf1.withoutPronoun().text)
+        assertTrue(wf1.hasPronoun)
+        assertFalse(wf1.withoutPronoun().hasPronoun)
+        assertEquals("ich tanze", wf1.text)
 
-        val wf2 = WordForm("Sie tanzen", emptyList(), Lang.DE)
-        assertEquals("tanzen", wf2.textCleaned)
-
-        val wf3 = WordForm("er/sie tanzt", emptyList(), Lang.DE)
-        assertEquals("tanzt", wf3.textCleaned)
-
-        val wf4 = WordForm("wir\\sie tanzen", emptyList(), Lang.DE)
-        assertEquals("tanzen", wf4.textCleaned)
+        // But articles are still there
+        val wf2 = WordForm("der Tisch", emptyList(), Lang.DE)
+        assertEquals("der Tisch", wf2.withoutPronoun().text)
+        assertFalse(wf2.hasPronoun)
+        assertTrue(wf2.withoutPronoun().hasArticle)
     }
 
     @Test
-    fun `cleaned text contains articles`() {
+    fun `text without article`() {
         val wf1 = WordForm("der Tisch", emptyList(), Lang.DE)
-        assertEquals("der Tisch", wf1.textCleaned)
-    }
+        assertEquals("Tisch", wf1.withoutArticle().text)
+        assertTrue(wf1.hasArticle)
+        assertFalse(wf1.withoutArticle().hasArticle)
 
-    @Test
-    fun `hasArticle field`() {
-        assertFalse(WordForm("Tisch", emptyList(), Lang.DE).hasArticle)
-        assertTrue(WordForm("der Tisch", emptyList(), Lang.DE).hasArticle)
+        // But pronouns are still there
+        val wf2 = WordForm("ich tanze", emptyList(), Lang.DE)
+        assertEquals("ich tanze", wf2.withoutArticle().text)
+        assertFalse(wf2.hasArticle)
+        assertTrue(wf2.withoutArticle().hasPronoun)
     }
 }

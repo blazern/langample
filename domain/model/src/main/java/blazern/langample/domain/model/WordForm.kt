@@ -1,13 +1,21 @@
 package blazern.langample.domain.model
 
-@ConsistentCopyVisibility
-data class WordForm private constructor(
+data class WordForm(
     val text: String,
-    val textCleaned: String,
-    val hasArticle: Boolean,
     val tags: List<Tag>,
     val lang: Lang,
 ) {
+    val hasArticle: Boolean
+        get() = this != this.withoutArticle()
+    val hasPronoun: Boolean
+        get() = this != this.withoutPronoun()
+    val wordsCount: Int
+        get() = text.split(delimiter).size
+    val auxiliary: Boolean
+        get() = tags.any { it is Tag.Defined.Auxiliary }
+    fun withoutPronoun(): WordForm = this.without(pronounsOf(lang))
+    fun withoutArticle(): WordForm = this.without(articlesOf(lang))
+
     sealed class Tag(open val value: String) {
         data class Undefined(
             override val value: String,
@@ -41,25 +49,6 @@ data class WordForm private constructor(
             data class Auxiliary(override val value: String) : Defined(value)
         }
     }
-
-    companion object {
-        operator fun invoke(
-            text: String,
-            tags: List<Tag>,
-            lang: Lang,
-        ) = WordForm(
-            text = text,
-            textCleaned = text.trim()
-                .split(delimiter)
-                .filter { !pronounsOf(lang).contains(it) }
-                .joinToString(" "),
-            hasArticle = text.trim()
-                .split(delimiter)
-                .any { articlesOf(lang).contains(it) },
-            tags = tags,
-            lang = lang,
-        )
-    }
 }
 
 private val delimiter = Regex("""[\\/ ]""")
@@ -77,3 +66,10 @@ private fun articlesOf(lang: Lang) = when (lang) {
     Lang.DE -> setOf("der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "eines")
     Lang.FR -> setOf("le", "la", "les", "l'", "l’", "un", "une", "des", "du", "au", "aux")
 }
+
+
+private fun WordForm.without(parts: Set<String>): WordForm =
+    this.copy(text = text
+        .split(delimiter)
+        .filter { !parts.contains(it) }
+        .joinToString(" "))

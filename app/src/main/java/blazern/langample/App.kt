@@ -45,6 +45,7 @@ private val LexicalItemDetailsSources = module {
         TatoebaLexicalItemDetailsSource(
             tatoebaClient = get(),
             cacher = get(),
+            kaikki = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 
