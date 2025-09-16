@@ -78,7 +78,7 @@ class TatoebaClientTest {
         """.trimIndent())
 
         val result = tatoeba
-            .search("hello", Lang.EN, Lang.DE)
+            .search("hello", Lang.EN, Lang.DE, page = 0)
             .getOrElse { throw it }
 
         val expected = listOf(
@@ -107,7 +107,7 @@ class TatoebaClientTest {
         setResponse("""{ "results": [] }""")
 
         val result = tatoeba
-            .search("hello", Lang.EN, Lang.DE)
+            .search("hello", Lang.EN, Lang.DE, page = 0)
             .getOrElse { throw it }
         val expected = emptyList<TranslationsSet>()
         assertEquals(expected, result)
@@ -118,7 +118,7 @@ class TatoebaClientTest {
         val e = IOException("no internet")
         setResponse(e)
 
-        val result = tatoeba.search("hello", Lang.EN, Lang.DE)
+        val result = tatoeba.search("hello", Lang.EN, Lang.DE, page = 0)
         val expected = Either.Left(e)
         assertEquals(expected.value, result.leftOrNull()!!.cause)
     }
