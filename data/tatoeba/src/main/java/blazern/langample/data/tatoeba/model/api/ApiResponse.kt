@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class ApiResponse(
     val paging: PagingWrapper? = null,
-    val results: List<Sentence>
+    val results: List<Sentence> = emptyList(),
 )

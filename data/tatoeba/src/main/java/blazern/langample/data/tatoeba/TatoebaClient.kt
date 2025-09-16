@@ -19,6 +19,7 @@ class TatoebaClient(
         query: String,
         langFrom: Lang,
         langTo: Lang,
+        page: Int,
     ): Either<Exception, List<TranslationsSet>> {
         val url = "https://tatoeba.org/en/api_v0/search"
         val response: ApiResponse = try {
@@ -29,6 +30,7 @@ class TatoebaClient(
                 parameter("query", query)
                 parameter("trans_filter", "limit")
                 parameter("trans_link", "direct")
+                parameter("page", page)
             }.body()
         } catch (e: Exception) {
             return Either.Left(e)

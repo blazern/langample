@@ -36,46 +36,45 @@ class TatoebaLexicalItemDetailsSource(
         langFrom: Lang,
         langTo: Lang,
     ): LexicalItemDetailsFlow = flow {
-        while (true) {
-            // Fixme: properly handle errors: send a signal to the clients that some part could not be loaded
-            val formsRes = kaikki.request(query, langFrom, langTo).firstOrNull {
-                it.getOrNull() is Forms
-            }
-            val forms = formsRes?.getOrNull() as Forms?
-            val finalQuery = if (forms?.value is Forms.Value.Detailed) {
-                val value = forms.value as Forms.Value.Detailed
-                value.forms
-                    .map { it.withoutPronoun().withoutArticle() }
-                    .distinct()
-                    .filter { it.wordsCount == 1 && !it.auxiliary }
-                    .joinToString("|", "(", ")") { "=${it.withoutPronoun().withoutArticle().text}" }
-            } else {
-                query
-            }
+        // Fixme: properly handle errors: send a signal to the clients that some part could not be loaded
+        val formsRes = kaikki.request(query, langFrom, langTo).firstOrNull {
+            it.getOrNull() is Forms
+        }
+        val forms = formsRes?.getOrNull() as Forms?
+        // Fixme: use that in Leipzig
+        val finalQuery = if (forms?.value is Forms.Value.Detailed) {
+            val value = forms.value as Forms.Value.Detailed
+            value.forms
+                .map { it.withoutPronoun().withoutArticle() }
+                .distinct()
+                .filter { it.wordsCount == 1 && !it.auxiliary }
+                .joinToString("|", "(", ")") { "=${it.withoutPronoun().withoutArticle().text}" }
+        } else {
+            query
+        }
 
-            // Fixme: other pages than 1
+        var hasNextPage = true
+        var page = 1
+        while (hasNextPage) {
             val translationsSetsResult = tatoebaClient.search(
                 query = finalQuery,
                 langFrom = langFrom,
                 langTo = langTo,
+                page = page,
             )
 
-            translationsSetsResult.fold(
-                { emit(Left(it)) },
-                { translationsSets ->
-                    translationsSets.forEach {
-                        emit(
-                            Right(
-                                LexicalItemDetail.Example(
-                                    translationsSet = it,
-                                    source = source,
-                                )
-                            )
-                        )
-                    }
-                    return@flow
-                }
+            val translationsSets = translationsSetsResult.fold(
+                { emit(Left(it)); continue },
+                { it }
             )
+            translationsSets.forEach {
+                emit(Right(LexicalItemDetail.Example(
+                    translationsSet = it,
+                    source = source,
+                )))
+            }
+            page += 1
+            hasNextPage = translationsSets.isNotEmpty()
         }
     }
 }
