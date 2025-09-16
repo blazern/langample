@@ -74,6 +74,7 @@ dependencies {
     implementation(project(":data:lexical-item-details-source:chatgpt"))
     implementation(project(":data:lexical-item-details-source:kaikki"))
     implementation(project(":data:lexical-item-details-source:panlex"))
+    implementation(project(":data:lexical-item-details-source:wortschatz-leipzig"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
