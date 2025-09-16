@@ -9,6 +9,7 @@ import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetails
 import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.WortschatzLeipzigLexicalItemDetailsSource
 import blazern.langample.domain.settings.di.settingsModule
 import blazern.langample.feature.home.di.homeScreenModule
 import blazern.langample.feature.search_result.di.searchResultModules
@@ -67,6 +68,12 @@ private val LexicalItemDetailsSources = module {
         PanLexLexicalItemDetailsSource(
             apolloClientHolder = get(),
             cacher = get(),
+        )
+    }.bind(LexicalItemDetailsSource::class)
+
+    single {
+        WortschatzLeipzigLexicalItemDetailsSource(
+            ktorClientHolder = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 }

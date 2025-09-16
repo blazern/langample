@@ -8,6 +8,7 @@ enum class DataSource {
     CHATGPT,
     KAIKKI,
     PANLEX,
+    WORTSCHATZ_LEIPZIG,
 }
 
 val DataSource.strRsc: Int
@@ -18,6 +19,7 @@ val DataSource.strRsc: Int
             DataSource.CHATGPT -> R.string.general_data_source_chatgpt
             DataSource.KAIKKI -> R.string.general_data_source_kaikki
             DataSource.PANLEX -> R.string.general_data_source_panlex
+            DataSource.WORTSCHATZ_LEIPZIG -> R.string.general_data_source_wortschatz_leipzig
         }
     }
 
@@ -25,9 +27,10 @@ val DataSource.priority: Int
     @Suppress("MagicNumber")
     get() {
         return when (this) {
-            DataSource.TATOEBA -> 1
-            DataSource.CHATGPT -> 10
-            DataSource.KAIKKI -> 5
             DataSource.PANLEX -> 0
+            DataSource.TATOEBA -> 1
+            DataSource.KAIKKI -> 2
+            DataSource.WORTSCHATZ_LEIPZIG -> 3
+            DataSource.CHATGPT -> 4
         }
     }
