@@ -4,7 +4,7 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
-import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource.CHATGPT
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail

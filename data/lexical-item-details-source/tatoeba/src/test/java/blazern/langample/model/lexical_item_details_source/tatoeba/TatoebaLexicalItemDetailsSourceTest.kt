@@ -2,23 +2,21 @@ package blazern.langample.model.lexical_item_details_source.tatoeba
 
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
-import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.tatoeba.TatoebaClient
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.domain.model.WordForm
+import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
 import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -29,11 +27,13 @@ import kotlin.test.assertTrue
 
 class TatoebaLexicalItemDetailsSourceTest {
     private val tatoeba = mockk<TatoebaClient>()
-    private val kaikki = mockk<KaikkiLexicalItemDetailsSource>(relaxed = true)
+    private val formsProvider = mockk<FormsForExamplesProvider> {
+        coEvery { requestFor(any(), any(), any()) } returns Left(Exception())
+    }
     private val source = TatoebaLexicalItemDetailsSource(
         tatoeba,
         LexicalItemDetailsSourceCacher.NOOP,
-        kaikki,
+        formsProvider,
     )
 
     private val translationsSets = listOf(
@@ -87,32 +87,28 @@ class TatoebaLexicalItemDetailsSourceTest {
         iter.close()
     }
 
-
     @Test
-    fun `uses Kaikki forms to refine Tatoeba query`() = runTest {
-        val kaikkiForms = listOf(
+    fun `uses forms to refine Tatoeba query`() = runTest {
+        val forms = listOf(
             WordForm(
-                text = "ich lache",
+                text = "lache",
                 tags = emptyList(),
                 lang = Lang.DE
             ),
             WordForm(
-                text = "du lachst",
+                text = "lachst",
                 tags = emptyList(),
                 lang = Lang.DE,
             ),
-            WordForm("haben", listOf(WordForm.Tag.Defined.Auxiliary("aux")), Lang.DE),
-            WordForm("der Lachen", emptyList(), Lang.DE),
         )
-        val formsDetail = Forms(Forms.Value.Detailed(kaikkiForms), DataSource.KAIKKI)
-        coEvery { kaikki.request(any(), any(), any()) } returns flowOf(Right(formsDetail))
+        coEvery { formsProvider.requestFor(any(), any(), any()) } returns Right(forms)
 
         coEvery { tatoeba.search(any(), any(), any(), 1) } returns Right(emptyList())
         source.request("lachen", Lang.DE, Lang.EN).toList().map { it.getOrNull()!! }
 
         val querySlot = slot<String>()
         coVerify { tatoeba.search(capture(querySlot), any(), any(), 1) }
-        assertEquals("(=lache|=lachst|=Lachen)", querySlot.captured)
+        assertEquals("(=lache|=lachst)", querySlot.captured)
     }
 
     @Test

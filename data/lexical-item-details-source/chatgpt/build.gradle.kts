@@ -14,7 +14,7 @@ dependencies {
     testImplementation(libs.apollo.testing)
 
     api(project(":data:lexical-item-details-source:api"))
-    implementation(project(":data:lexical-item-details-source:cache"))
+    implementation(project(":data:lexical-item-details-source:utils:cache"))
     implementation(project(":data:langample-graphql"))
     implementation(project(":core:utils"))
 }

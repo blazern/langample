@@ -10,7 +10,7 @@ import blazern.langample.data.kaikki.model.Form
 import blazern.langample.data.kaikki.model.FormOf
 import blazern.langample.data.kaikki.model.Sense
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
-import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -20,7 +20,6 @@ import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.model.WordForm
 import blazern.langample.domain.model.WordForm.Tag.Defined.Plural
 import blazern.langample.domain.model.WordForm.Tag.Defined.Singular
-import blazern.langample.domain.settings.SettingsRepository
 import blazern.langample.utils.FlowIterator
 import io.mockk.coEvery
 import io.mockk.mockk
