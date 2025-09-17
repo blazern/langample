@@ -1,8 +1,6 @@
-package blazern.langample.data.lexical_item_details_source.cache
+package blazern.langample.data.lexical_item_details_source.utils.cache
 
 import arrow.core.Either
-import arrow.core.Either.Left
-import arrow.core.Either.Right
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
@@ -19,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 
@@ -30,7 +27,7 @@ class LexicalItemDetailsSourceCacherTest {
         LexicalItemDetail.Explanation("2", source),
         LexicalItemDetail.Explanation("3", source),
     )
-    private val detailsFlow: LexicalItemDetailsFlow = details.map { Right(it) }.asFlow()
+    private val detailsFlow: LexicalItemDetailsFlow = details.map { Either.Right(it) }.asFlow()
 
     @Test
     fun `happy path`() = runTest {
@@ -52,26 +49,27 @@ class LexicalItemDetailsSourceCacherTest {
     }
 
     @Test
-    fun `caches only successes and replays them to late subscriber, execute called once`() = runTest {
-        val cacher = LexicalItemDetailsSourceCacher()
+    fun `caches only successes and replays them to late subscriber, execute called once`() =
+        runTest {
+            val cacher = LexicalItemDetailsSourceCacher()
 
-        val executeCalls = AtomicInteger(0)
-        val execute = {
-            executeCalls.incrementAndGet()
-            detailsFlow
+            val executeCalls = AtomicInteger(0)
+            val execute = {
+                executeCalls.incrementAndGet()
+                detailsFlow
+            }
+
+            val received1 = cacher
+                .retrieveOrExecute(source, "query", Lang.DE, Lang.EN) { execute() }
+                .toList()
+            val received2 = cacher
+                .retrieveOrExecute(source, "query", Lang.DE, Lang.EN) { execute() }
+                .toList()
+
+            assertEquals(1, executeCalls.get())
+            assertEquals(detailsFlow.toList(), received1)
+            assertEquals(detailsFlow.toList(), received2)
         }
-
-        val received1 = cacher
-            .retrieveOrExecute(source, "query", Lang.DE, Lang.EN) { execute() }
-            .toList()
-        val received2 = cacher
-            .retrieveOrExecute(source, "query", Lang.DE, Lang.EN) { execute() }
-            .toList()
-
-        assertEquals(1, executeCalls.get())
-        assertEquals(detailsFlow.toList(), received1)
-        assertEquals(detailsFlow.toList(), received2)
-    }
 
     @Test
     fun `new stream for different request - execute called per distinct request`() = runTest {
@@ -111,12 +109,12 @@ class LexicalItemDetailsSourceCacherTest {
         val cacher = LexicalItemDetailsSourceCacher()
 
         // long-running upstream
-        val emitted = Channel<LexicalItemDetail>(Channel.UNLIMITED)
+        val emitted = Channel<LexicalItemDetail>(Channel.Factory.UNLIMITED)
         val executeCalls = AtomicInteger(0)
         val execute = {
             executeCalls.incrementAndGet()
             flow {
-                for (v in emitted) emit(Right(v))
+                for (v in emitted) emit(Either.Right(v))
             }
         }
 
@@ -164,10 +162,10 @@ class LexicalItemDetailsSourceCacherTest {
         val execute = {
             executeCalls.incrementAndGet()
             flow {
-                emit(Left(e1))
-                emit(Right(details[0]))
-                emit(Left(e2))
-                emit(Right(details[1]))
+                emit(Either.Left(e1))
+                emit(Either.Right(details[0]))
+                emit(Either.Left(e2))
+                emit(Either.Right(details[1]))
             }
         }
 
@@ -175,9 +173,16 @@ class LexicalItemDetailsSourceCacherTest {
         val second = cacher.retrieveOrExecute(source, "q", Lang.EN, Lang.DE) { execute() }.toList()
 
         assertEquals(1, executeCalls.get())
-        assertEquals(listOf(Left(e1), Right(details[0]), Left(e2), Right(details[1])), first)
+        assertEquals(
+            listOf(
+                Either.Left(e1),
+                Either.Right(details[0]),
+                Either.Left(e2),
+                Either.Right(details[1])
+            ), first
+        )
         // no errors replayed
-        assertEquals(listOf(Right(details[0]), Right(details[1])), second)
+        assertEquals(listOf(Either.Right(details[0]), Either.Right(details[1])), second)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -186,7 +191,7 @@ class LexicalItemDetailsSourceCacherTest {
         val cacher = LexicalItemDetailsSourceCacher()
 
         // controllable long-running upstream
-        val upstream = Channel<Either<Exception, LexicalItemDetail>>(Channel.UNLIMITED)
+        val upstream = Channel<Either<Exception, LexicalItemDetail>>(Channel.Factory.UNLIMITED)
         val execute = {
             flow {
                 for (x in upstream) {
@@ -195,8 +200,8 @@ class LexicalItemDetailsSourceCacherTest {
             }
         }
 
-        val blockFirstAfterFirstItem = Channel<Unit>(Channel.RENDEZVOUS)
-        val releaseFirst = Channel<Unit>(Channel.RENDEZVOUS)
+        val blockFirstAfterFirstItem = Channel<Unit>(Channel.Factory.RENDEZVOUS)
+        val releaseFirst = Channel<Unit>(Channel.Factory.RENDEZVOUS)
 
         val results1 = mutableListOf<Either<Exception, LexicalItemDetail>>()
         val results2 = mutableListOf<Either<Exception, LexicalItemDetail>>()
@@ -215,7 +220,7 @@ class LexicalItemDetailsSourceCacherTest {
         }
 
         // Emit first item, job1 will receive it and then block.
-        upstream.send(Right(details[0]))
+        upstream.send(Either.Right(details[0]))
         runCurrent()
         // Wait until job1 has collected the first item
         blockFirstAfterFirstItem.receive()
@@ -231,7 +236,7 @@ class LexicalItemDetailsSourceCacherTest {
         assertEquals(detailsFlow.take(1).toList(), results2)
 
         // Emit second item; fast collector should advance even while job1 is blocked
-        upstream.send(Right(details[1]))
+        upstream.send(Either.Right(details[1]))
         runCurrent()
         assertEquals(detailsFlow.take(2).toList(), results2)
 
@@ -247,51 +252,52 @@ class LexicalItemDetailsSourceCacherTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `cancellation mid-stream - late subscriber replays successes and continues live`() = runTest {
-        val cacher = LexicalItemDetailsSourceCacher()
+    fun `cancellation mid-stream - late subscriber replays successes and continues live`() =
+        runTest {
+            val cacher = LexicalItemDetailsSourceCacher()
 
-        val upstream = Channel<Either<Exception, LexicalItemDetail>>(Channel.UNLIMITED)
-        val executeCalls = AtomicInteger(0)
-        val execute = {
-            executeCalls.incrementAndGet()
-            flow {
-                for (x in upstream) emit(x)
+            val upstream = Channel<Either<Exception, LexicalItemDetail>>(Channel.Factory.UNLIMITED)
+            val executeCalls = AtomicInteger(0)
+            val execute = {
+                executeCalls.incrementAndGet()
+                flow {
+                    for (x in upstream) emit(x)
+                }
             }
+
+            val parentScope = this
+
+            // First collector consumes some data, then cancels
+            val results1 = mutableListOf<Either<Exception, LexicalItemDetail>>()
+            val job1 = launch {
+                cacher.retrieveOrExecute(source, "q", Lang.EN, Lang.DE, parentScope) { execute() }
+                    .collect { results1 += it }
+            }
+
+            upstream.send(Either.Right(details[0]))
+            runCurrent()
+            assertEquals(detailsFlow.take(1).toList(), results1)
+
+            job1.cancelAndJoin()
+
+            // Late subscriber: should replay first detail immediately, then continue to get others
+            val results2 = mutableListOf<Either<Exception, LexicalItemDetail>>()
+            val job2 = launch {
+                cacher.retrieveOrExecute(source, "q", Lang.EN, Lang.DE, parentScope) { execute() }
+                    .collect { results2 += it }
+            }
+            runCurrent()
+            assertEquals(detailsFlow.take(1).toList(), results2)
+
+            upstream.send(Either.Right(details[1]))
+            upstream.send(Either.Right(details[2]))
+            runCurrent()
+
+            assertEquals(detailsFlow.take(1).toList(), results1)
+            assertEquals(detailsFlow.take(3).toList(), results2)
+            assertEquals(1, executeCalls.get())
+
+            upstream.close()
+            job2.cancelAndJoin()
         }
-
-        val parentScope = this
-        
-        // First collector consumes some data, then cancels
-        val results1 = mutableListOf<Either<Exception, LexicalItemDetail>>()
-        val job1 = launch {
-            cacher.retrieveOrExecute(source, "q", Lang.EN, Lang.DE, parentScope) { execute() }
-                .collect { results1 += it }
-        }
-
-        upstream.send(Right(details[0]))
-        runCurrent()
-        assertEquals(detailsFlow.take(1).toList(), results1)
-
-        job1.cancelAndJoin()
-
-        // Late subscriber: should replay first detail immediately, then continue to get others
-        val results2 = mutableListOf<Either<Exception, LexicalItemDetail>>()
-        val job2 = launch {
-            cacher.retrieveOrExecute(source, "q", Lang.EN, Lang.DE, parentScope) { execute() }
-                .collect { results2 += it }
-        }
-        runCurrent()
-        assertEquals(detailsFlow.take(1).toList(), results2)
-
-        upstream.send(Right(details[1]))
-        upstream.send(Right(details[2]))
-        runCurrent()
-
-        assertEquals(detailsFlow.take(1).toList(), results1)
-        assertEquals(detailsFlow.take(3).toList(), results2)
-        assertEquals(1, executeCalls.get())
-
-        upstream.close()
-        job2.cancelAndJoin()
-    }
 }

@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "blazern.langample.data.lexical_item_details_source.cache"
+    namespace = "blazern.langample.data.lexical_item_details_source.utils.cache"
 }
 
 dependencies {

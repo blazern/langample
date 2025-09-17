@@ -2,11 +2,12 @@ package blazern.langample
 
 import android.app.Application
 import blazern.langample.core.ktor.di.ktorModule
+import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
 import blazern.langample.data.kaikki.di.kaikkiModule
 import blazern.langample.data.langample.graphql.di.langampleGraphQLModule
 import blazern.langample.data.tatoeba.di.tatoebaModule
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
-import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.WortschatzLeipzigLexicalItemDetailsSource
@@ -41,12 +42,17 @@ class App : Application() {
 
 private val LexicalItemDetailsSources = module {
     single { LexicalItemDetailsSourceCacher() }
+    factory {
+        FormsForExamplesProvider(
+            kaikki = get(),
+        )
+    }
 
     single {
         TatoebaLexicalItemDetailsSource(
             tatoebaClient = get(),
             cacher = get(),
-            kaikki = get(),
+            formsForExamplesProvider = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 
@@ -74,6 +80,8 @@ private val LexicalItemDetailsSources = module {
     single {
         WortschatzLeipzigLexicalItemDetailsSource(
             ktorClientHolder = get(),
+            cacher = get(),
+            formsForExamplesProvider = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
 }

@@ -1,8 +1,6 @@
-package blazern.langample.data.lexical_item_details_source.cache
+package blazern.langample.data.lexical_item_details_source.utils.cache
 
 import arrow.core.Either
-import arrow.core.Either.Left
-import arrow.core.Either.Right
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
@@ -34,7 +32,7 @@ open class LexicalItemDetailsSourceCacher {
         val dataStream = dataStreamsMutex.withLock {
             dataStreams.getOrPut(key) {
                 DataStream(
-                    iterator = FlowIterator(execute(), coroutineScope),
+                    iterator = FlowIterator.Companion(execute(), coroutineScope),
                     receivedData = mutableListOf(),
                 )
             }
@@ -55,7 +53,7 @@ open class LexicalItemDetailsSourceCacher {
             // Each emit can suspend for long, so we're
             // emitting from outside of the lock
             if (newEntries.isNotEmpty()) {
-                newEntries.forEach { emit(Right(it)) }
+                newEntries.forEach { emit(Either.Right(it)) }
                 nextDataEntryIndex += newEntries.size
                 continue
             }
@@ -63,7 +61,7 @@ open class LexicalItemDetailsSourceCacher {
             val newResult = try {
                 dataStream.iterator.next()
             } catch (e: Exception) {
-                emit(Left(e))
+                emit(Either.Left(e))
                 continue
             }
             if (newResult == null) {
@@ -71,7 +69,7 @@ open class LexicalItemDetailsSourceCacher {
                 return@flow
             }
             val newItem = newResult.fold(
-                { emit(Left(it)); continue },
+                { emit(Either.Left(it)); continue },
                 { it }
             )
             dataStream.dataMutex.withLock {

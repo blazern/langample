@@ -7,7 +7,7 @@ import blazern.langample.data.kaikki.KaikkiClient
 import blazern.langample.data.kaikki.model.Entry
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
-import blazern.langample.data.lexical_item_details_source.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail

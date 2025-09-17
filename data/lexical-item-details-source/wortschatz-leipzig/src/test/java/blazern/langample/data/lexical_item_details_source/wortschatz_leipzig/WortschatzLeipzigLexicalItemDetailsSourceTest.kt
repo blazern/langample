@@ -1,14 +1,19 @@
 package blazern.langample.data.lexical_item_details_source.wortschatz_leipzig
 
 import arrow.core.Either
+import arrow.core.Either.Left
+import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.WordForm
+import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
 import blazern.langample.utils.FlowIterator
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -16,6 +21,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -23,13 +32,16 @@ import org.junit.Before
 import org.junit.Test
 import java.io.IOException
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class WortschatzLeipzigLexicalItemDetailsSourceTest {
+    private val capturedUrls = mutableListOf<String>()
     private val responses = mutableListOf<Either<Exception, Pair<HttpStatusCode, String>>>()
 
-    private val mockEngine = MockEngine { _ ->
+    private val mockEngine = MockEngine { request ->
+        capturedUrls.add(request.url.toString())
         val next = responses.removeFirstOrNull()
-            ?: Either.Right(HttpStatusCode.OK to """{"count":0,"sentences":[]}""")
+            ?: Right(HttpStatusCode.OK to """{"count":0,"sentences":[]}""")
         next.fold(
             { throw it },
             { (code, body) ->
@@ -43,15 +55,21 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
     }
 
     private val clientHolder = KtorClientHolder(mockEngine)
-    private val source: LexicalItemDetailsSource =
-        WortschatzLeipzigLexicalItemDetailsSource(clientHolder)
+    private val formsProvider = mockk<FormsForExamplesProvider> {
+        coEvery { requestFor(any(), any(), any()) } returns Left(Exception())
+    }
+    private val source: LexicalItemDetailsSource = WortschatzLeipzigLexicalItemDetailsSource(
+        clientHolder,
+        LexicalItemDetailsSourceCacher.NOOP,
+        formsProvider,
+    )
 
     private fun enqueue(body: String, code: HttpStatusCode = HttpStatusCode.OK) {
-        responses.add(Either.Right(code to body))
+        responses.add(Right(code to body))
     }
 
     private fun enqueueError(e: Exception) {
-        responses.add(Either.Left(e))
+        responses.add(Left(e))
     }
 
     private fun exampleJson(vararg pairs: Pair<String, String>): String {
@@ -82,7 +100,7 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
     }
 
     @Test
-    fun `emits examples from a single page and dedupes within page`() = runTest {
+    fun `emits examples from a single page and deduplicates within page`() = runTest {
         enqueue(
             exampleJson(
                 "42" to "Cat sits",
@@ -124,7 +142,7 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
     }
 
     @Test
-    fun `dedupes across pages`() = runTest {
+    fun `deduplicates across pages`() = runTest {
         // First page has id=1..3; second page repeats id=3 and adds id=4
         enqueue(exampleJson("1" to "uno", "2" to "dos", "3" to "tres"))
         enqueue(exampleJson("3" to "tres (dup)", "4" to "cuatro"))
@@ -150,13 +168,41 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
         val flow = source.request("кот", Lang.EN, Lang.RU)
         val iter = FlowIterator(flow)
 
-        assertIs<Either.Left<*>>(iter.next())
+        assertIs<Left<*>>(iter.next())
         val next = iter.next()
 
-        assertIs<Either.Right<*>>(next)
+        assertIs<Right<*>>(next)
         val right = next.value
         assertEquals(example("First successful example", Lang.EN), right)
 
         iter.close()
+    }
+
+    @Test
+    fun `uses forms to send multiple requests`() = runTest {
+        val forms = listOf(
+            WordForm(
+                text = "lache",
+                tags = emptyList(),
+                lang = Lang.DE
+            ),
+            WordForm(
+                text = "lachst",
+                tags = emptyList(),
+                lang = Lang.DE,
+            ),
+        )
+        coEvery { formsProvider.requestFor(any(), any(), any()) } returns Right(forms)
+
+        enqueue(exampleJson("1" to "Ich lache."))
+        enqueue(exampleJson("2" to "Du lachst."))
+
+        source.request("lachen", Lang.DE, Lang.EN)
+            .toList()
+            .map { it.getOrElse { throw it } }
+
+        assertTrue(capturedUrls.any { it.contains("/sentences/lache") })
+        assertTrue(capturedUrls.any { it.contains("/sentences/lachst") })
+        assertTrue(capturedUrls.none { it.contains("/sentences/lachen") })
     }
 }

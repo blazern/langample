@@ -12,8 +12,8 @@ dependencies {
     implementation(libs.ktor.client.core)
     api(project(":domain:model"))
     api(project(":data:lexical-item-details-source:api"))
-    implementation(project(":data:lexical-item-details-source:cache"))
-    implementation(project(":data:lexical-item-details-source:kaikki"))
+    implementation(project(":data:lexical-item-details-source:utils:cache"))
+    implementation(project(":data:lexical-item-details-source:utils:examples-tools"))
     implementation(project(":core:ktor"))
     testImplementation(project(":core:utils"))
 }

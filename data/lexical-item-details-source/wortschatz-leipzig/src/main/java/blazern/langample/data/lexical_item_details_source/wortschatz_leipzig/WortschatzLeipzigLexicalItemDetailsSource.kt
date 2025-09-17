@@ -3,8 +3,10 @@ package blazern.langample.data.lexical_item_details_source.wortschatz_leipzig
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import blazern.langample.core.ktor.KtorClientHolder
+import blazern.langample.core.logging.Log
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentence
 import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentencesResponse
 import blazern.langample.domain.model.DataSource
@@ -12,6 +14,7 @@ import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -20,46 +23,69 @@ import java.net.URLEncoder
 
 class WortschatzLeipzigLexicalItemDetailsSource(
     private val ktorClientHolder: KtorClientHolder,
+    private val cacher: LexicalItemDetailsSourceCacher,
+    private val formsForExamplesProvider: FormsForExamplesProvider,
 ) : LexicalItemDetailsSource {
 
     override val source = DataSource.WORTSCHATZ_LEIPZIG
     override val types = listOf(LexicalItemDetail.Type.EXAMPLE)
 
-    @Suppress("TooGenericExceptionCaught")
     override fun request(
         query: String,
         langFrom: Lang,
         langTo: Lang,
+    ): LexicalItemDetailsFlow = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
+        requestImpl(query, langFrom, langTo)
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    private fun requestImpl(
+        query: String,
+        langFrom: Lang,
+        langTo: Lang,
     ): LexicalItemDetailsFlow = flow {
+        val queriesRes = formsForExamplesProvider.requestFor(
+            query = query,
+            langFrom = langFrom,
+            langTo = langTo,
+        )
+        // Fixme: properly handle errors: send a signal to the clients that some part could not be loaded
+        val queries = queriesRes.fold(
+            { Log.e(TAG, it) { "No forms" }; listOf(query) },
+            { it.map { it.text } }
+        )
+
         val baseUrl = "https://api.wortschatz-leipzig.de/ws/sentences"
-        val encodedTerm = encodePathSegment(query)
-        val seen = HashSet<String>()
-        for (corpus in textCorporaFor(langFrom)) {
-            val url = "$baseUrl/$corpus/sentences/$encodedTerm"
-            var hasNextPage = true
-            var offset = 0
-            while (hasNextPage) {
-                var response: LeipzigSentencesResponse? = null
-                while (response == null) {
-                    response = try {
-                        ktorClientHolder.client.get(url) {
-                            parameter("offset", offset)
-                            parameter("limit", LIMIT)
-                        }.body<LeipzigSentencesResponse>()
-                    } catch (e: Exception) {
-                        val error = Left(e)
-                        emit(error)
-                        null
+        for (query in queries) {
+            val encodedTerm = encodePathSegment(query)
+            val seen = HashSet<String>()
+            for (corpus in textCorporaFor(langFrom)) {
+                val url = "$baseUrl/$corpus/sentences/$encodedTerm"
+                var hasNextPage = true
+                var offset = 0
+                while (hasNextPage) {
+                    var response: LeipzigSentencesResponse? = null
+                    while (response == null) {
+                        response = try {
+                            ktorClientHolder.client.get(url) {
+                                parameter("offset", offset)
+                                parameter("limit", LIMIT)
+                            }.body<LeipzigSentencesResponse>()
+                        } catch (e: Exception) {
+                            val error = Left(e)
+                            emit(error)
+                            null
+                        }
                     }
-                }
-                response.sentences.forEach {
-                    if (!seen.contains(it.id)) {
-                        seen.add(it.id)
-                        emit(Right(it.toExample(langFrom)))
+                    response.sentences.forEach {
+                        if (!seen.contains(it.id)) {
+                            seen.add(it.id)
+                            emit(Right(it.toExample(langFrom)))
+                        }
                     }
+                    hasNextPage = response.sentences.size == LIMIT
+                    offset += LIMIT
                 }
-                hasNextPage = response.sentences.size == LIMIT
-                offset += LIMIT
             }
         }
     }
@@ -110,3 +136,5 @@ private fun textCorporaFor(lang: Lang): List<String> {
         )
     }
 }
+
+private const val TAG = "WortschatzLeipzigLexicalItemDetailsSource"
