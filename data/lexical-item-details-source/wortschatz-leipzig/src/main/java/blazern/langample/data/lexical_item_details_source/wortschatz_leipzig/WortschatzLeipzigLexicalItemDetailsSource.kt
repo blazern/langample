@@ -1,14 +1,13 @@
 package blazern.langample.data.lexical_item_details_source.wortschatz_leipzig
 
-import arrow.core.Either.Left
-import arrow.core.Either.Right
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.core.logging.Log
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentence
 import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentencesResponse
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -18,6 +17,7 @@ import blazern.langample.model.lexical_item_details_source.utils.examples_tools.
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.net.URLEncoder
 
@@ -34,7 +34,7 @@ class WortschatzLeipzigLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): LexicalItemDetailsFlow = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
+    ): Flow<Item> = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
         requestImpl(query, langFrom, langTo)
     }
 
@@ -43,15 +43,14 @@ class WortschatzLeipzigLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): LexicalItemDetailsFlow = flow {
+    ): Flow<Item> = flow {
         val queriesRes = formsForExamplesProvider.requestFor(
             query = query,
             langFrom = langFrom,
             langTo = langTo,
         )
-        // Fixme: properly handle errors: send a signal to the clients that some part could not be loaded
         val queries = queriesRes.fold(
-            { Log.e(TAG, it) { "No forms" }; listOf(query) },
+            { Log.e(TAG, it.e) { "No forms" }; listOf(query) },
             { it.map { it.text } }
         )
 
@@ -72,16 +71,24 @@ class WortschatzLeipzigLexicalItemDetailsSource(
                                 parameter("limit", LIMIT)
                             }.body<LeipzigSentencesResponse>()
                         } catch (e: Exception) {
-                            val error = Left(e)
-                            emit(error)
+                            emit(Item.Failure(Err.from(e)))
                             null
                         }
                     }
+                    val pageDetails = mutableListOf<LexicalItemDetail>()
                     response.sentences.forEach {
                         if (!seen.contains(it.id)) {
                             seen.add(it.id)
-                            emit(Right(it.toExample(langFrom)))
+                            pageDetails.add(it.toExample(langFrom))
                         }
+                    }
+                    if (pageDetails.isNotEmpty()) {
+                        val result = Item.Page(
+                            details = pageDetails,
+                            nextPageTypes = types,
+                            errors = queriesRes.fold({ listOf(it) }, { emptyList() }),
+                        )
+                        emit(result)
                     }
                     hasNextPage = response.sentences.size == LIMIT
                     offset += LIMIT

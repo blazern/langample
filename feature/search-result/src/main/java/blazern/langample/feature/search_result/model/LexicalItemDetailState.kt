@@ -1,5 +1,6 @@
 package blazern.langample.feature.search_result.model
 
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.LexicalItemDetail
 import kotlin.uuid.ExperimentalUuidApi
@@ -20,7 +21,7 @@ internal sealed class LexicalItemDetailState<T : LexicalItemDetail> (
     ) : LexicalItemDetailState<T>(detail.source)
 
     data class Error<T : LexicalItemDetail>(
-        val exception: Exception,
+        val err: Err,
         override val source: DataSource,
     ) : LexicalItemDetailState<T>(source)
 }

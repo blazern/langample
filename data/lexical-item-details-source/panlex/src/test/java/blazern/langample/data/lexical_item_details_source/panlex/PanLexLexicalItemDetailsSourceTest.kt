@@ -1,8 +1,6 @@
 package blazern.langample.data.lexical_item_details_source.panlex
 
-import arrow.core.Either.Left
-import arrow.core.Either.Right
-import arrow.core.getOrElse
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource.PANLEX
@@ -155,7 +153,8 @@ class PanLexLexicalItemDetailsSourceTest {
         val details = source.request("Haus", Lang.DE, Lang.EN)
             .take(10)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val translations = details.filterIsInstance<LexicalItemDetail.WordTranslations>().single()
         assertEquals(
@@ -200,8 +199,8 @@ class PanLexLexicalItemDetailsSourceTest {
 
         val flow = source.request("Haus", Lang.DE, Lang.EN)
         val iter = FlowIterator(flow)
-        assertTrue(iter.next() is Left)   // network error
-        assertTrue(iter.next() is Right)  // success afterwards
+        assertTrue(iter.next() is Item.Failure)   // network error
+        assertTrue(iter.next() is Item.Page)  // success afterwards
         iter.close()
     }
 
@@ -211,7 +210,7 @@ class PanLexLexicalItemDetailsSourceTest {
 
         val flow = source.request("Haus", Lang.DE, Lang.EN)
         val iter = FlowIterator(flow)
-        assertTrue(iter.next() is Left)
+        assertTrue(iter.next() is Item.Failure)
         iter.close()
     }
 }

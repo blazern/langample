@@ -1,16 +1,16 @@
 package blazern.langample.model.lexical_item_details_source.tatoeba
 
-import arrow.core.Either.Left
-import arrow.core.Either.Right
+import arrow.core.getOrElse
 import blazern.langample.core.logging.Log
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.tatoeba.TatoebaClient
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class TatoebaLexicalItemDetailsSource(
@@ -24,8 +24,8 @@ class TatoebaLexicalItemDetailsSource(
     override fun request(
         query: String,
         langFrom: Lang,
-        langTo: Lang,
-    ): LexicalItemDetailsFlow = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
+        langTo: Lang
+    ): Flow<Item> = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
         requestImpl(query, langFrom, langTo)
     }
 
@@ -33,37 +33,43 @@ class TatoebaLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): LexicalItemDetailsFlow = flow {
+    ): Flow<Item>  = flow {
         val queriesRes = formsForExamplesProvider.requestFor(
             query = query,
             langFrom = langFrom,
             langTo = langTo,
         )
-        // Fixme: properly handle errors: send a signal to the clients that some part could not be loaded
-        val finalQuery = queriesRes.fold(
-            { Log.e(TAG, it) { "No forms" }; query },
-            { it.joinToString("|", "(", ")") { "=${it.text}" } }
-        )
+        val finalQuery = queriesRes.map {
+            it.joinToString("|", "(", ")") { "=${it.text}" }
+        }.onLeft {
+            Log.e(TAG, it.e) { "No forms" }
+        }
+
         var hasNextPage = true
         var page = 1
         while (hasNextPage) {
             val translationsSetsResult = tatoebaClient.search(
-                query = finalQuery,
+                query = finalQuery.getOrElse { query },
                 langFrom = langFrom,
                 langTo = langTo,
                 page = page,
             )
 
             val translationsSets = translationsSetsResult.fold(
-                { emit(Left(it)); continue },
+                { emit(Item.Failure(it)); continue },
                 { it }
             )
-            translationsSets.forEach {
-                emit(Right(LexicalItemDetail.Example(
-                    translationsSet = it,
-                    source = source,
-                )))
-            }
+            val result = Item.Page(
+                details = translationsSets.map {
+                    LexicalItemDetail.Example(
+                        translationsSet = it,
+                        source = source,
+                    )
+                },
+                errors = finalQuery.fold({ listOf(it) }, { emptyList() }),
+                nextPageTypes = types,
+            )
+            emit(result)
             page += 1
             hasNextPage = translationsSets.isNotEmpty()
         }

@@ -2,8 +2,10 @@ package blazern.langample.model.lexical_item_details_source.tatoeba
 
 import arrow.core.Either.Left
 import arrow.core.Either.Right
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.data.tatoeba.TatoebaClient
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -20,7 +22,6 @@ import io.mockk.slot
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.IOException
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -28,7 +29,7 @@ import kotlin.test.assertTrue
 class TatoebaLexicalItemDetailsSourceTest {
     private val tatoeba = mockk<TatoebaClient>()
     private val formsProvider = mockk<FormsForExamplesProvider> {
-        coEvery { requestFor(any(), any(), any()) } returns Left(Exception())
+        coEvery { requestFor(any(), any(), any()) } returns Left(Err.from(Exception()))
     }
     private val source = TatoebaLexicalItemDetailsSource(
         tatoeba,
@@ -62,7 +63,8 @@ class TatoebaLexicalItemDetailsSourceTest {
 
         val results = source.request("hello", Lang.EN, Lang.DE)
             .toList()
-            .map { it.getOrNull()!! }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val expected = translationsSets.map {
             LexicalItemDetail.Example(
@@ -76,14 +78,14 @@ class TatoebaLexicalItemDetailsSourceTest {
     @Test
     fun `bad and then good scenario`() = runTest {
         // Bad
-        coEvery { tatoeba.search("hello", Lang.EN, Lang.DE, 1) } returns Left(IOException())
+        coEvery { tatoeba.search("hello", Lang.EN, Lang.DE, 1) } returns Left(Err.from(Exception()))
         val flow = source.request("hello", Lang.EN, Lang.DE)
         val iter = FlowIterator(flow)
-        assertTrue { iter.next() is Left }
+        assertTrue { iter.next() is Item.Failure }
 
         // Good
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE, 1) } returns Right(translationsSets)
-        assertTrue { iter.next() is Right }
+        assertTrue { iter.next() is Item.Page }
         iter.close()
     }
 
@@ -104,7 +106,7 @@ class TatoebaLexicalItemDetailsSourceTest {
         coEvery { formsProvider.requestFor(any(), any(), any()) } returns Right(forms)
 
         coEvery { tatoeba.search(any(), any(), any(), 1) } returns Right(emptyList())
-        source.request("lachen", Lang.DE, Lang.EN).toList().map { it.getOrNull()!! }
+        source.request("lachen", Lang.DE, Lang.EN).toList()
 
         val querySlot = slot<String>()
         coVerify { tatoeba.search(capture(querySlot), any(), any(), 1) }
@@ -113,7 +115,7 @@ class TatoebaLexicalItemDetailsSourceTest {
 
     @Test
     fun `paginates and retries same page after error`() = runTest {
-         val page1 = listOf(
+        val page1 = listOf(
             TranslationsSet(
                 original = Sentence("Hello", Lang.EN, DataSource.TATOEBA),
                 translations = listOf(Sentence("Hallo", Lang.DE, DataSource.TATOEBA)),
@@ -131,7 +133,7 @@ class TatoebaLexicalItemDetailsSourceTest {
         // Page 1 OK, Page 2 fails once then succeeds, Page 3 empty => stop
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE, 1) } returns Right(page1)
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE, 2) } returnsMany listOf(
-            Left(IOException("transient")),
+            Left(Err.from(Exception())),
             Right(page2)
         )
         coEvery { tatoeba.search("hello", Lang.EN, Lang.DE, 3) } returns Right(emptyList())
@@ -140,20 +142,20 @@ class TatoebaLexicalItemDetailsSourceTest {
         val iter = FlowIterator(flow)
 
         // Page 1 emits its examples
-        val first = iter.next()
+        val first = iter.next() as Item.Page
         assertEquals(
             LexicalItemDetail.Example(page1[0], DataSource.TATOEBA),
-            (first as Right).value
+            first.details[0]
         )
 
         // First attempt of Page 2 emits an error
-        assertTrue(iter.next() is Left)
+        assertTrue(iter.next() is Item.Failure)
 
         // Retry of Page 2 succeeds and emits its examples
-        val third = iter.next()
+        val third = iter.next() as Item.Page
         assertEquals(
             LexicalItemDetail.Example(page2[0], DataSource.TATOEBA),
-            (third as Right).value
+            third.details[0]
         )
 
         iter.close()

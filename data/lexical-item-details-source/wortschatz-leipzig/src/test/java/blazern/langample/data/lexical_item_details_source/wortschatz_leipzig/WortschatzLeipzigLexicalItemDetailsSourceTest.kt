@@ -3,10 +3,11 @@ package blazern.langample.data.lexical_item_details_source.wortschatz_leipzig
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.getOrElse
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -22,9 +23,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -56,7 +55,7 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
 
     private val clientHolder = KtorClientHolder(mockEngine)
     private val formsProvider = mockk<FormsForExamplesProvider> {
-        coEvery { requestFor(any(), any(), any()) } returns Left(Exception())
+        coEvery { requestFor(any(), any(), any()) } returns Left(Err.from(Exception()))
     }
     private val source: LexicalItemDetailsSource = WortschatzLeipzigLexicalItemDetailsSource(
         clientHolder,
@@ -111,7 +110,8 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
 
         val results = source.request("cat", Lang.EN, Lang.RU)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val expected = listOf(
             example("Cat sits", Lang.EN),
@@ -128,7 +128,8 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
 
         val results = source.request("Haus", Lang.DE, Lang.EN)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val expected = buildList {
             addAll((0 until 10).map { example("Satz $it", Lang.DE) })
@@ -149,7 +150,8 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
 
         val results = source.request("algo", Lang.EN, Lang.DE)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val expected = listOf(
             example("uno", Lang.EN),
@@ -168,11 +170,11 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
         val flow = source.request("кот", Lang.EN, Lang.RU)
         val iter = FlowIterator(flow)
 
-        assertIs<Left<*>>(iter.next())
+        assertIs<Item.Failure>(iter.next())
         val next = iter.next()
 
-        assertIs<Right<*>>(next)
-        val right = next.value
+        assertIs<Item.Page>(next)
+        val right = (next as Item.Page).details[0]
         assertEquals(example("First successful example", Lang.EN), right)
 
         iter.close()
@@ -199,10 +201,34 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
 
         source.request("lachen", Lang.DE, Lang.EN)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         assertTrue(capturedUrls.any { it.contains("/sentences/lache") })
         assertTrue(capturedUrls.any { it.contains("/sentences/lachst") })
         assertTrue(capturedUrls.none { it.contains("/sentences/lachen") })
+    }
+
+    @Test
+    fun `emits page only when there are new examples`() = runTest {
+        // First page has 2 examples -> emits Page
+        enqueue(exampleJson("1" to "eins", "2" to "zwei"))
+        // Second page repeats both examples -> should NOT emit Page
+        enqueue(exampleJson("1" to "eins", "2" to "zwei"))
+        // Third page has 1 new example -> emits Page
+        enqueue(exampleJson("3" to "drei"))
+
+        val results = source.request("zahlen", Lang.DE, Lang.EN)
+            .toList()
+            .filterIsInstance<Item.Page>()
+            .map { it.details }
+            .flatten()
+
+        val expected = listOf(
+            example("eins", Lang.DE),
+            example("zwei", Lang.DE),
+            example("drei", Lang.DE),
+        )
+        assertEquals(expected, results)
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -46,7 +47,7 @@ private fun FormsPreview() {
         Column {
             ListItem(Loading<Forms>(FORMS, DataSource.CHATGPT), c, m)
             ListItem(Loaded(Forms(Forms.Value.Text(text), DataSource.CHATGPT)), c, m)
-            ListItem(Error<Forms>(IOException("No internet"), DataSource.CHATGPT), c, m)
+            ListItem(Error<Forms>(Err.Other(null), DataSource.CHATGPT), c, m)
         }
     }
 }
@@ -61,7 +62,7 @@ private fun ExplanationPreview() {
         Column {
             ListItem(Loading<Explanation>(EXPLANATION, DataSource.CHATGPT), c, m)
             ListItem(Loaded(Explanation(text, DataSource.CHATGPT)), c, m)
-            ListItem(Error<Explanation>(IOException("No internet"), DataSource.CHATGPT), c, m)
+            ListItem(Error<Explanation>(Err.Other(null), DataSource.CHATGPT), c, m)
         }
     }
 }
@@ -84,7 +85,7 @@ private fun ExamplesPreview() {
         Column {
             ListItem(Loading<Example>(EXAMPLE, DataSource.TATOEBA), c, m)
             ListItem(Loaded(Example(translations, DataSource.TATOEBA)), c, m)
-            ListItem(Error<Example>(IOException("No internet"), DataSource.TATOEBA), c, m)
+            ListItem(Error<Example>(Err.Other(null), DataSource.TATOEBA), c, m)
         }
     }
 }

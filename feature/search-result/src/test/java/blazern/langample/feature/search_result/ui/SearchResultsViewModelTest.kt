@@ -1,8 +1,7 @@
 package blazern.langample.feature.search_result.ui
 
-import arrow.core.Either.Right
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -17,6 +16,7 @@ import blazern.langample.feature.search_result.model.LexicalItemDetailState
 import blazern.langample.feature.search_result.model.detailsOfType
 import blazern.langample.test_utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -193,7 +193,13 @@ private class FakeLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): LexicalItemDetailsFlow = flow {
-        details.forEach { emit(Right(it)) }
+    ): Flow<Item> = flow {
+        details.forEach {
+            val page = Item.Page(
+                details = listOf(it),
+                nextPageTypes = types,
+            )
+            emit(page)
+        }
     }
 }

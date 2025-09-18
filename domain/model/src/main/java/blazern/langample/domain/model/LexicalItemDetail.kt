@@ -11,12 +11,19 @@ import kotlin.reflect.KClass
 
 sealed class LexicalItemDetail(
     val type: Type,
-    open val source: DataSource,
 ) {
+    /**
+     * Non-null if this [LexicalItemDetail] belongs to a group (e.g. to a
+     * particular meaning of a the target word).
+     */
+    abstract val meaningId: String?
+    abstract val source: DataSource
+
     data class Forms(
         val value: Value,
         override val source: DataSource,
-    ) : LexicalItemDetail(Type.FORMS, source) {
+        override val meaningId: String? = null,
+    ) : LexicalItemDetail(Type.FORMS) {
         sealed class Value {
             data class Text(val text: String) : Value()
             data class Detailed(val forms: List<WordForm>) : Value()
@@ -26,22 +33,26 @@ sealed class LexicalItemDetail(
     data class WordTranslations(
         val translationsSet: TranslationsSet,
         override val source: DataSource,
-    ) : LexicalItemDetail(Type.WORD_TRANSLATIONS, source)
+        override val meaningId: String? = null,
+    ) : LexicalItemDetail(Type.WORD_TRANSLATIONS)
 
     data class Synonyms(
         val translationsSet: TranslationsSet,
         override val source: DataSource,
-    ) : LexicalItemDetail(Type.SYNONYMS, source)
+        override val meaningId: String? = null,
+    ) : LexicalItemDetail(Type.SYNONYMS)
 
     data class Explanation(
         val text: String,
         override val source: DataSource,
-    ) : LexicalItemDetail(Type.EXPLANATION, source)
+        override val meaningId: String? = null,
+    ) : LexicalItemDetail(Type.EXPLANATION)
 
     data class Example(
         val translationsSet: TranslationsSet,
         override val source: DataSource,
-    ) : LexicalItemDetail(Type.EXAMPLE, source)
+        override val meaningId: String? = null,
+    ) : LexicalItemDetail(Type.EXAMPLE)
 
     enum class Type {
         FORMS,

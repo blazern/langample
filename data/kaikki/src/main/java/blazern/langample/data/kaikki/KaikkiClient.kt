@@ -3,6 +3,7 @@ package blazern.langample.data.kaikki
 import arrow.core.Either
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.data.kaikki.model.Entry
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.Lang
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -25,7 +26,7 @@ class KaikkiClient(
     suspend fun search(
         query: String,
         langFrom: Lang,
-    ): Either<Exception, List<Entry>> {
+    ): Either<Err, List<Entry>> {
         val queryToUrl = { query: String ->
             "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
         }
@@ -51,7 +52,7 @@ class KaikkiClient(
                     .toList()
                 Either.Right(entries)
             } catch (e: Exception) {
-                Either.Left(e)
+                Either.Left(Err.from(e))
             }
         }
     }
