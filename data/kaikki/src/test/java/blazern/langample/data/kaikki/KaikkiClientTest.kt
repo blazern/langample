@@ -46,7 +46,7 @@ class KaikkiClientTest {
             """.trimIndent()
         )
 
-        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it }
+        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it.e!! }
 
         val expected = listOf(
             Entry(
@@ -71,7 +71,7 @@ class KaikkiClientTest {
     @Test
     fun `empty body yields empty list`() = runBlocking {
         setResponse("")
-        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it }
+        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it.e!! }
         assertTrue(result.isEmpty())
     }
 
@@ -80,14 +80,14 @@ class KaikkiClientTest {
         val io = IOException("no internet")
         setResponse(io)
         val result = kaikki.search("Haus", Lang.DE)
-        assertEquals(io, result.leftOrNull()?.cause)
+        assertEquals(io, result.leftOrNull()?.e!!.cause)
     }
 
     @Test
     fun `serialization problems are wrapped in Either Left`() = runBlocking {
         setResponse("{ this is not valid json }")
         val result = kaikki.search("Haus", Lang.DE)
-        val error = result.leftOrNull()
+        val error = result.leftOrNull()!!.e
         assertTrue(error is SerializationException)
     }
 
@@ -107,7 +107,7 @@ class KaikkiClientTest {
             }
         }
 
-        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it }
+        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it.e!! }
         assertEquals(1, result.size)
         assertEquals("haus", result[0].word)
     }
@@ -128,7 +128,7 @@ class KaikkiClientTest {
             }
         }
 
-        val result = kaikki.search("haus", Lang.DE).getOrElse { throw it }
+        val result = kaikki.search("haus", Lang.DE).getOrElse { throw it.e!! }
         assertEquals(1, result.size)
         assertEquals("Haus", result[0].word)
     }
@@ -145,7 +145,7 @@ class KaikkiClientTest {
             Either.Right(Pair(HttpStatusCode.OK, body))
         }
 
-        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it }
+        val result = kaikki.search("Haus", Lang.DE).getOrElse { throw it.e!! }
 
         assertEquals(1, result.size)
         assertEquals("Haus", result[0].word)

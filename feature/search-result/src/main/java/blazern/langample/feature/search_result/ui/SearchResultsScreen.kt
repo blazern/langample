@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -22,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
@@ -33,6 +31,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import blazern.langample.core.strings.R
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail.Example
@@ -46,7 +45,6 @@ import blazern.langample.feature.search_result.model.SearchResultsState
 import blazern.langample.feature.search_result.ui.list.LexicalItemDetailCallbacks
 import blazern.langample.theme.LangampleTheme
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 @Composable
 internal fun SearchResultsScreen(
@@ -183,11 +181,11 @@ private fun PreviewAllGood() {
 @Composable
 private fun PreviewErrors() {
     val state = SearchResultsState(
-        forms = listOf(Error(IOException("Not internet connection"), DataSource.CHATGPT)),
-        explanations = listOf(Error(IOException("Not internet connection"), DataSource.CHATGPT)),
+        forms = listOf(Error(Err.Other(null), DataSource.CHATGPT)),
+        explanations = listOf(Error(Err.Other(null), DataSource.CHATGPT)),
         examples = listOf(
-            Error(IOException("Not internet connection"), DataSource.TATOEBA),
-            Error(IOException("Not internet connection"), DataSource.CHATGPT)
+            Error(Err.Other(null), DataSource.TATOEBA),
+            Error(Err.Other(null), DataSource.CHATGPT)
         ),
     )
     LangampleTheme {

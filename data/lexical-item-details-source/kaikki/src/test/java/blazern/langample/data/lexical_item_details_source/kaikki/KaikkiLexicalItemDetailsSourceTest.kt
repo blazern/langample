@@ -2,7 +2,7 @@ package blazern.langample.data.lexical_item_details_source.kaikki
 
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.getOrElse
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.kaikki.KaikkiClient
 import blazern.langample.data.kaikki.model.Entry
 import blazern.langample.data.kaikki.model.Example
@@ -11,6 +11,7 @@ import blazern.langample.data.kaikki.model.FormOf
 import blazern.langample.data.kaikki.model.Sense
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -77,7 +78,8 @@ class KaikkiLexicalItemDetailsSourceTest {
 
         val results = source.request("Haus", Lang.DE, Lang.EN)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val expected = listOf(
             Forms(
@@ -104,16 +106,16 @@ class KaikkiLexicalItemDetailsSourceTest {
     @Test
     fun `recovers after initial error`() = runTest {
         val io = IOException("no internet")
-        coEvery { kaikkiClient.search("Haus", Lang.DE) } returns Left(io)
+        coEvery { kaikkiClient.search("Haus", Lang.DE) } returns Left(Err.from(io))
 
         val flow = source.request("Haus", Lang.DE, Lang.EN)
         val iter = FlowIterator(flow)
 
-        assertTrue(iter.next() is Left)
+        assertTrue(iter.next() is Item.Failure)
 
         coEvery { kaikkiClient.search("Haus", Lang.DE) } returns Right(listOf(entry))
 
-        assertTrue(iter.next() is Right)
+        assertTrue(iter.next() is Item.Page)
         iter.close()
     }
 
@@ -159,7 +161,8 @@ class KaikkiLexicalItemDetailsSourceTest {
 
         val results = source.request("Häuser", Lang.DE, Lang.EN)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         // Expect ONLY the parent
         val expected = listOf(

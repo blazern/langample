@@ -1,8 +1,6 @@
 package blazern.langample.model.lexical_item_details_source.chatgpt
 
-import arrow.core.Either.Left
-import arrow.core.Either.Right
-import arrow.core.getOrElse
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource.CHATGPT
@@ -190,7 +188,8 @@ class ChatGPTLexicalItemDetailsSourceTest {
         val details = source.request("Hund", Lang.DE, Lang.EN)
             .take(20)
             .toList()
-            .map { it.getOrElse { throw it } }
+            .map { (it as Item.Page).details }
+            .flatten()
 
         val explanation = details
             .filterIsInstance<LexicalItemDetail.Explanation>()
@@ -274,8 +273,8 @@ class ChatGPTLexicalItemDetailsSourceTest {
 
         val flow = source.request("dog", Lang.EN, Lang.DE)
         val iter = FlowIterator(flow)
-        assertTrue(iter.next() is Left)
-        assertTrue(iter.next() is Right)
+        assertTrue(iter.next() is Item.Failure)
+        assertTrue(iter.next() is Item.Page)
         iter.close()
     }
 
@@ -285,7 +284,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
 
         val flow = source.request("dog", Lang.EN, Lang.DE)
         val iter = FlowIterator(flow)
-        assertTrue(iter.next() is Left)
+        assertTrue(iter.next() is Item.Failure)
         iter.close()
     }
 }

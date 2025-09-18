@@ -79,7 +79,7 @@ class TatoebaClientTest {
 
         val result = tatoeba
             .search("hello", Lang.EN, Lang.DE, page = 0)
-            .getOrElse { throw it }
+            .getOrElse { throw it.e!! }
 
         val expected = listOf(
             TranslationsSet(
@@ -108,7 +108,7 @@ class TatoebaClientTest {
 
         val result = tatoeba
             .search("hello", Lang.EN, Lang.DE, page = 0)
-            .getOrElse { throw it }
+            .getOrElse { throw it.e!! }
         val expected = emptyList<TranslationsSet>()
         assertEquals(expected, result)
     }
@@ -120,7 +120,7 @@ class TatoebaClientTest {
 
         val result = tatoeba.search("hello", Lang.EN, Lang.DE, page = 0)
         val expected = Either.Left(e)
-        assertEquals(expected.value, result.leftOrNull()!!.cause)
+        assertEquals(expected.value, result.leftOrNull()!!.e!!.cause)
     }
 
     private fun setResponse(json: String) {

@@ -1,10 +1,54 @@
 package blazern.langample.data.lexical_item_details_source.kaikki
 
+import blazern.langample.data.kaikki.model.Entry
 import blazern.langample.data.kaikki.model.Form
+import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
+import blazern.langample.domain.model.LexicalItemDetail
+import blazern.langample.domain.model.LexicalItemDetail.Explanation
+import blazern.langample.domain.model.Sentence
+import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.TranslationsSet.Companion.invoke
 import blazern.langample.domain.model.WordForm
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
-internal fun Form.toDomain(lang: Lang): WordForm {
+@OptIn(ExperimentalUuidApi::class)
+internal fun Entry.toDetails(
+    langFrom: Lang,
+    langTo: Lang,
+): List<LexicalItemDetail> {
+    var result = mutableListOf<LexicalItemDetail>()
+
+    if (forms.isNotEmpty()) {
+        result += LexicalItemDetail.Forms(
+            LexicalItemDetail.Forms.Value.Detailed(
+                forms.map { it.toDomain(langFrom) }
+            ),
+            DataSource.KAIKKI,
+        )
+    }
+    if (senses.isNotEmpty()) {
+        for (sense in senses) {
+            for (gloss in sense.glosses) {
+                result += Explanation(gloss, DataSource.KAIKKI)
+            }
+            for (example in sense.examples) {
+                result += LexicalItemDetail.Example(
+                    TranslationsSet(
+                        original = Sentence(example.text, langTo, DataSource.KAIKKI),
+                        translations = emptyList(),
+                        translationsQualities = emptyList(),
+                    ),
+                    DataSource.KAIKKI,
+                )
+            }
+        }
+    }
+    return result
+}
+
+private fun Form.toDomain(lang: Lang): WordForm {
     return WordForm(
         text = form.trim(),
         tags = (tags ?: emptyList()).map { it.toWordFormTag() },

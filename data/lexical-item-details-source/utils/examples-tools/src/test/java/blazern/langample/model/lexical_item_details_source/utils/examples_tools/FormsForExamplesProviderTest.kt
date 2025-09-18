@@ -1,9 +1,9 @@
 package blazern.langample.model.lexical_item_details_source.utils.examples_tools
 
-import arrow.core.Either.Left
-import arrow.core.Either.Right
 import arrow.core.getOrElse
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -21,6 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class FormsForExamplesProviderTest {
+    private val types = listOf(LexicalItemDetail.Type.FORMS)
     private val kaikki = mockk<KaikkiLexicalItemDetailsSource>()
     private val formsProvider = FormsForExamplesProvider(kaikki)
 
@@ -41,7 +42,9 @@ class FormsForExamplesProviderTest {
             WordForm("der Lachen", emptyList(), Lang.DE),
         )
         val formsDetail = Forms(Forms.Value.Detailed(kaikkiForms), DataSource.KAIKKI)
-        coEvery { kaikki.request(any(), any(), any()) } returns flowOf(Right(formsDetail))
+        coEvery { kaikki.request(any(), any(), any()) } returns flowOf(
+            Item.Page(details = listOf(formsDetail), types)
+        )
 
         val expectedForms = listOf(
             WordForm(
@@ -58,7 +61,7 @@ class FormsForExamplesProviderTest {
         )
         assertEquals(
             expectedForms,
-            formsProvider.requestFor("lachen", Lang.DE, Lang.EN).getOrElse { throw it },
+            formsProvider.requestFor("lachen", Lang.DE, Lang.EN).getOrElse { throw it.e!! },
         )
     }
 
@@ -67,16 +70,16 @@ class FormsForExamplesProviderTest {
         val kaikkiForms = listOf(WordForm("lachen", emptyList(), Lang.DE))
         val formsDetail = Forms(Forms.Value.Detailed(kaikkiForms), DataSource.KAIKKI)
         coEvery { kaikki.request(any(), any(), any()) } returns flowOf(
-            Right(Explanation("Explanation", DataSource.KAIKKI)),
-            Right(LexicalItemDetail.Example(TranslationsSet(
+            Item.Page(details = listOf(Explanation("Explanation", DataSource.KAIKKI)), types),
+            Item.Page(details = listOf(LexicalItemDetail.Example(TranslationsSet(
                 Sentence("", Lang.DE, DataSource.KAIKKI), emptyList(), emptyList(),
-            ), DataSource.KAIKKI)),
-            Right(formsDetail),
-       )
+            ), DataSource.KAIKKI)), types),
+            Item.Page(details = listOf(formsDetail), types),
+        )
 
         assertEquals(
             kaikkiForms,
-            formsProvider.requestFor("lachen", Lang.DE, Lang.EN).getOrElse { throw it },
+            formsProvider.requestFor("lachen", Lang.DE, Lang.EN).getOrElse { throw it.e!! },
         )
     }
 
@@ -85,9 +88,9 @@ class FormsForExamplesProviderTest {
         val kaikkiForms = listOf(WordForm("lachen", emptyList(), Lang.DE))
         val formsDetail = Forms(Forms.Value.Detailed(kaikkiForms), DataSource.KAIKKI)
         coEvery { kaikki.request(any(), any(), any()) } returns flowOf(
-            Right(Explanation("Explanation", DataSource.KAIKKI)),
-            Left(Exception()),
-            Right(formsDetail),
+            Item.Page(details = listOf(Explanation("Explanation", DataSource.KAIKKI)), types),
+            Item.Failure(Err.from(Exception())),
+            Item.Page(details = listOf(formsDetail), types),
         )
 
         val result = formsProvider.requestFor("lachen", Lang.DE, Lang.EN)

@@ -35,7 +35,7 @@ private fun ErrorContent(
     callbacks: LexicalItemDetailCallbacks,
     modifier: Modifier = Modifier,
 ) {
-    val errorText = error.exception.toString()
+    val errorText = error.err.e.toString()
     Box(modifier = modifier
         .padding(horizontal = 24.dp, vertical = 16.dp)
         .clickable { callbacks.onFixErrorRequest(error) }

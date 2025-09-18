@@ -1,19 +1,13 @@
 package blazern.langample.data.lexical_item_details_source.kaikki
 
-import arrow.core.Either
-import arrow.core.Either.Left
-import arrow.core.Either.Right
 import blazern.langample.data.kaikki.KaikkiClient
 import blazern.langample.data.kaikki.model.Entry
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.LexicalItemDetail.Explanation
-import blazern.langample.domain.model.Sentence
-import blazern.langample.domain.model.TranslationsSet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -32,8 +26,8 @@ class KaikkiLexicalItemDetailsSource(
     override fun request(
         query: String,
         langFrom: Lang,
-        langTo: Lang,
-    ): LexicalItemDetailsFlow = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
+        langTo: Lang
+    ): Flow<Item> = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
         requestImpl(query, langFrom, langTo)
     }
 
@@ -42,12 +36,12 @@ class KaikkiLexicalItemDetailsSource(
         langFrom: Lang,
         langTo: Lang,
         depth: Int = 0,
-    ): Flow<Either<Exception, LexicalItemDetail>> {
+    ): Flow<Item> {
         return flow {
             var entries: List<Entry>? = null
             do {
                 entries = kaikkiClient.search(query, langFrom).fold(
-                    { emit(Left(it)); null },
+                    { emit(Item.Failure(it)); null },
                     { it }
                 )
             } while (entries == null)
@@ -56,10 +50,12 @@ class KaikkiLexicalItemDetailsSource(
                 val formsOf = entry.senses.map { it.formOf }.flatten()
                 val purelyWordForm = formsOf.size == entry.senses.size
                 if (!purelyWordForm) {
-                    val details = toDetails(entry, langFrom, langTo)
-                    details.forEach {
-                        emit(Right(it))
-                    }
+                    val details = entry.toDetails(langFrom, langTo)
+                    val page = Item.Page(
+                        details = details,
+                        nextPageTypes = types,
+                    )
+                    emit(page)
                 }
                 if (depth == 0) {
                     formsOf.forEach {
@@ -68,40 +64,5 @@ class KaikkiLexicalItemDetailsSource(
                 }
             }
         }
-    }
-
-    private fun toDetails(
-        entry: Entry,
-        langFrom: Lang,
-        langTo: Lang,
-    ): List<LexicalItemDetail> {
-        var result = mutableListOf<LexicalItemDetail>()
-
-        if (entry.forms.isNotEmpty()) {
-            result += LexicalItemDetail.Forms(
-                LexicalItemDetail.Forms.Value.Detailed(
-                    entry.forms.map { it.toDomain(langFrom) }
-                ),
-                source,
-            )
-        }
-        if (entry.senses.isNotEmpty()) {
-            for (sense in entry.senses) {
-                for (gloss in sense.glosses) {
-                    result += Explanation(gloss, source)
-                }
-                for (example in sense.examples) {
-                    result += LexicalItemDetail.Example(
-                        TranslationsSet(
-                            original = Sentence(example.text, langTo, source),
-                            translations = emptyList(),
-                            translationsQualities = emptyList(),
-                        ),
-                        source,
-                    )
-                }
-            }
-        }
-        return result
     }
 }

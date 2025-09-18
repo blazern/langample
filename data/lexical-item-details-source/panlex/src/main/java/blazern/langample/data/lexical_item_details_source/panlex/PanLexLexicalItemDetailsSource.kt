@@ -5,9 +5,10 @@ import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
 import blazern.langample.data.langample.graphql.LangampleApolloClientHolder
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
@@ -17,6 +18,7 @@ import blazern.langample.graphql.model.LexicalItemsFromPanLexQuery
 import blazern.langample.graphql.model.fragment.SentenceFields
 import blazern.langample.graphql.model.fragment.TranslationsSetFields
 import com.apollographql.apollo.ApolloClient
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
 
@@ -37,7 +39,7 @@ class PanLexLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang
-    ): LexicalItemDetailsFlow = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
+    ): Flow<Item> = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
         requestImpl(query, langFrom, langTo)
     }
 
@@ -45,13 +47,16 @@ class PanLexLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang
-    ): LexicalItemDetailsFlow = flow {
+    ): Flow<Item> = flow {
         while (true) {
             val result = apolloRequest(query, langFrom, langTo)
             result.fold(
-                { emit(Left(it)) },
+                { emit(Item.Failure(Err.from(it))) },
                 {
-                    it.forEach { emit(Right(it)) }
+                    emit(Item.Page(
+                        details = it,
+                        nextPageTypes = types,
+                    ))
                     return@flow
                 }
             )

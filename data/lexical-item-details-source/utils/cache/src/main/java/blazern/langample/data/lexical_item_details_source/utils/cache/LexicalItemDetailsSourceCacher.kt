@@ -1,12 +1,12 @@
 package blazern.langample.data.lexical_item_details_source.utils.cache
 
-import arrow.core.Either
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsFlow
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
+import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
-import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.utils.FlowIterator
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,13 +26,13 @@ open class LexicalItemDetailsSourceCacher {
         langFrom: Lang,
         langTo: Lang,
         coroutineScope: CoroutineScope? = null,
-        execute: () -> LexicalItemDetailsFlow,
-    ): LexicalItemDetailsFlow = flow {
+        execute: () -> Flow<Item>,
+    ): Flow<Item> = flow {
         val key = DataKey(source, query, langFrom, langTo)
         val dataStream = dataStreamsMutex.withLock {
             dataStreams.getOrPut(key) {
                 DataStream(
-                    iterator = FlowIterator.Companion(execute(), coroutineScope),
+                    iterator = FlowIterator(execute(), coroutineScope),
                     receivedData = mutableListOf(),
                 )
             }
@@ -53,7 +53,7 @@ open class LexicalItemDetailsSourceCacher {
             // Each emit can suspend for long, so we're
             // emitting from outside of the lock
             if (newEntries.isNotEmpty()) {
-                newEntries.forEach { emit(Either.Right(it)) }
+                newEntries.forEach { emit(it) }
                 nextDataEntryIndex += newEntries.size
                 continue
             }
@@ -61,19 +61,30 @@ open class LexicalItemDetailsSourceCacher {
             val newResult = try {
                 dataStream.iterator.next()
             } catch (e: Exception) {
-                emit(Either.Left(e))
+                emit(Item.Failure(Err.from(e)))
                 continue
             }
-            if (newResult == null) {
-                // End of stream
-                return@flow
+            val newItem = when (newResult) {
+                is Item.Page -> newResult
+                is Item.Failure -> {
+                    emit(newResult)
+                    null
+                }
+                null -> null
             }
-            val newItem = newResult.fold(
-                { emit(Either.Left(it)); continue },
-                { it }
-            )
+            // NOTE: there's a rare race condition here:
+            // - If there are 2 threads competing for this lock
+            // - the first one has [newResult] and the second one has [null]
+            // - if the one with [null] enters the lock first, it'll leave
+            //   the flow before the second one will put the new value into [receivedData]
+            // But it's not a huge problem, because for that to happen the [null] thread
+            // must outrace the [newResult] thread, even though it's guaranteed to be behind
+            // of it, because [iterator.next] blocks.
             dataStream.dataMutex.withLock {
-                dataStream.receivedData.add(newItem)
+                newItem?.let { dataStream.receivedData.add(it) }
+                if (newResult == null && dataStream.receivedData.size <= nextDataEntryIndex) {
+                    return@flow
+                }
             }
         }
     }
@@ -86,7 +97,7 @@ open class LexicalItemDetailsSourceCacher {
                 langFrom: Lang,
                 langTo: Lang,
                 coroutineScope: CoroutineScope?,
-                execute: () -> LexicalItemDetailsFlow,
+                execute: () -> Flow<Item>,
             ) = execute()
         }
     }
@@ -100,7 +111,8 @@ private data class DataKey(
 )
 
 private class DataStream(
-    val iterator: FlowIterator<Either<Exception, LexicalItemDetail>>,
-    val receivedData: MutableList<LexicalItemDetail>,
+    val iterator: FlowIterator<Item>,
+    val receivedData: MutableList<Item.Page>,
     val dataMutex: Mutex = Mutex(),
+    val mutex2: Mutex = Mutex(),
 )

@@ -5,13 +5,12 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import arrow.core.Either
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Forms
-import blazern.langample.domain.model.WordForm
 import blazern.langample.domain.model.toClass
 import blazern.langample.feature.search_result.model.LexicalItemDetailState
 import blazern.langample.feature.search_result.model.SearchResultsState
@@ -23,7 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-private typealias LexicalItemDetailFlow = FlowIterator<Either<Exception, LexicalItemDetail>>
+private typealias LexicalItemDetailFlow = FlowIterator<Item>
 
 internal class SearchResultsViewModel(
     startQuery: String,
@@ -117,32 +116,39 @@ internal class SearchResultsViewModel(
     }
 
     private fun <T : LexicalItemDetail> onNextDetailResult(
-        detailRes: Either<Exception, LexicalItemDetail>,
+        detailRes: Item,
         source: DataSource,
     ) {
-        detailRes.fold(
-            {
+        when (detailRes) {
+            is Item.Failure -> {
                 _state.value = _state.value.replaceWithError(
                     source,
                     listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
-                    { LexicalItemDetailState.Error<T>(it, source) },
+                    { LexicalItemDetailState.Error<T>(detailRes.err, source) },
                 )
-            },
-            {
-                val detail = transform(it)
-                if (detail != null) {
-                    _state.value = _state.value
-                        .remove(
-                            listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
-                            source,
+            }
+            is Item.Page -> {
+                _state.value = _state.value
+                    .remove(
+                        listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
+                        source,
+                    )
+                val details = detailRes.details.mapNotNull { transform(it) }
+                if (details.isNotEmpty()) {
+                    var newState = _state.value
+                    details.forEach {
+                        newState = newState.add(it::class, LexicalItemDetailState.Loaded(it))
+                    }
+                    for (type in detailRes.nextPageTypes) {
+                        newState = newState.add(
+                            type.toClass(),
+                            LexicalItemDetailState.Loading<T>(type, source)
                         )
-                        .add(it::class, LexicalItemDetailState.Loaded(detail))
-                        .add(it.type.toClass(),
-                            LexicalItemDetailState.Loading<LexicalItemDetail>(detail.type, source),
-                        )
+                    }
+                    _state.value = newState
                 }
             }
-        )
+        }
     }
 
     private fun transform(detail: LexicalItemDetail): LexicalItemDetail? {
