@@ -114,5 +114,4 @@ private class DataStream(
     val iterator: FlowIterator<Item>,
     val receivedData: MutableList<Item.Page>,
     val dataMutex: Mutex = Mutex(),
-    val mutex2: Mutex = Mutex(),
 )
