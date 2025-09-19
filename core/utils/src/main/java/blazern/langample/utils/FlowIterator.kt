@@ -27,7 +27,6 @@ private constructor(
     private val values: Channel<Either<Throwable, T?>>,
     private val job: Job,
     private val hasEnded: AtomicBoolean,
-    private val scope: CoroutineScope,
 ) : Closeable {
 
     private val mutex = Mutex()
@@ -46,6 +45,9 @@ private constructor(
             }
         }
 
+        if (hasEnded.load() == true) {
+            return null
+        }
         try {
             signal.send(Unit)
         } catch (_: ClosedSendChannelException) {
@@ -109,7 +111,7 @@ private constructor(
                 }
             }
 
-            return FlowIterator(signal, values, job, hasEnded, scope)
+            return FlowIterator(signal, values, job, hasEnded)
         }
     }
 }
