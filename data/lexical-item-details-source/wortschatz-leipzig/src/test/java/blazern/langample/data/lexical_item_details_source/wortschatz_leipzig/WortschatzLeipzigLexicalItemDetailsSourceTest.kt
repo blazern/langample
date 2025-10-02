@@ -6,7 +6,6 @@ import arrow.core.Either.Right
 import blazern.langample.core.ktor.KtorClientHolder
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
-import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
@@ -173,7 +172,7 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
         val next = iter.next()
 
         assertIs<Item.Page>(next)
-        val right = (next as Item.Page).details[0]
+        val right = next.details[0]
         assertEquals(example("First successful example", Lang.EN), right)
 
         iter.close()

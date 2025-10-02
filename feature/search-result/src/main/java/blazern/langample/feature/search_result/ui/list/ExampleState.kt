@@ -27,14 +27,8 @@ import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
-import blazern.langample.domain.model.WordForm
-import blazern.langample.domain.model.WordForm.Tag.Defined.Genitive
-import blazern.langample.domain.model.WordForm.Tag.Defined.Nominative
-import blazern.langample.domain.model.WordForm.Tag.Defined.Plural
-import blazern.langample.domain.model.WordForm.Tag.Defined.Singular
 import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
 
 
@@ -64,8 +58,8 @@ internal fun ExampleCard(
     ) {
         when (state) {
             is ExampleState.Loaded -> {
-                val bg1 = MaterialTheme.colorScheme.surfaceContainerLowest
-                val bg2 = MaterialTheme.colorScheme.surfaceContainerLow
+                val bg1 = MaterialTheme.colorScheme.secondaryContainer
+                val bg2 = MaterialTheme.colorScheme.surfaceContainer
                 ExampleContent(
                     example = state.example,
                     contentColor = cardColors.contentColor,
