@@ -59,7 +59,6 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
     }
     private val source: LexicalItemDetailsSource = WortschatzLeipzigLexicalItemDetailsSource(
         clientHolder,
-        LexicalItemDetailsSourceCacher.NOOP,
         formsProvider,
     )
 

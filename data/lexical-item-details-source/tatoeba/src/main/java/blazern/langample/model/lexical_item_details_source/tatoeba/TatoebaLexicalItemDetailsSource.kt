@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.flow
 
 class TatoebaLexicalItemDetailsSource(
     private val tatoebaClient: TatoebaClient,
-    private val cacher: LexicalItemDetailsSourceCacher,
     private val formsForExamplesProvider: FormsForExamplesProvider,
 ) : LexicalItemDetailsSource {
     override val source = DataSource.TATOEBA
@@ -25,9 +24,7 @@ class TatoebaLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang
-    ): Flow<Item> = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
-        requestImpl(query, langFrom, langTo)
-    }
+    ): Flow<Item> = requestImpl(query, langFrom, langTo)
 
     private fun requestImpl(
         query: String,

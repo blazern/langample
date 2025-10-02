@@ -23,7 +23,6 @@ import java.net.URLEncoder
 
 class WortschatzLeipzigLexicalItemDetailsSource(
     private val ktorClientHolder: KtorClientHolder,
-    private val cacher: LexicalItemDetailsSourceCacher,
     private val formsForExamplesProvider: FormsForExamplesProvider,
 ) : LexicalItemDetailsSource {
 
@@ -34,9 +33,7 @@ class WortschatzLeipzigLexicalItemDetailsSource(
         query: String,
         langFrom: Lang,
         langTo: Lang,
-    ): Flow<Item> = cacher.retrieveOrExecute(source, query, langFrom, langTo) {
-        requestImpl(query, langFrom, langTo)
-    }
+    ): Flow<Item> = requestImpl(query, langFrom, langTo)
 
     @Suppress("TooGenericExceptionCaught")
     private fun requestImpl(

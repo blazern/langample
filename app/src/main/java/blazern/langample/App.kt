@@ -51,7 +51,6 @@ private val LexicalItemDetailsSources = module {
     single {
         TatoebaLexicalItemDetailsSource(
             tatoebaClient = get(),
-            cacher = get(),
             formsForExamplesProvider = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
@@ -80,7 +79,6 @@ private val LexicalItemDetailsSources = module {
     single {
         WortschatzLeipzigLexicalItemDetailsSource(
             ktorClientHolder = get(),
-            cacher = get(),
             formsForExamplesProvider = get(),
         )
     }.bind(LexicalItemDetailsSource::class)
