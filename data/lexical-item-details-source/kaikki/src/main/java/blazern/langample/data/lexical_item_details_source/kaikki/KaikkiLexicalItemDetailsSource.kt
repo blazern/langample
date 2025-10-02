@@ -17,7 +17,7 @@ class KaikkiLexicalItemDetailsSource(
     private val cacher: LexicalItemDetailsSourceCacher,
 ) : LexicalItemDetailsSource {
     override val source = DataSource.KAIKKI
-    override val types = listOf(
+    override val types = setOf(
         LexicalItemDetail.Type.FORMS,
         LexicalItemDetail.Type.EXPLANATION,
         LexicalItemDetail.Type.EXAMPLE,

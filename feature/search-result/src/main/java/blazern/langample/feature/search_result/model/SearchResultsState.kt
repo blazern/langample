@@ -1,138 +1,112 @@
 package blazern.langample.feature.search_result.model
 
 import androidx.compose.runtime.Immutable
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.LexicalItemDetail.Example
-import blazern.langample.domain.model.LexicalItemDetail.Explanation
-import blazern.langample.domain.model.LexicalItemDetail.Forms
-import blazern.langample.domain.model.LexicalItemDetail.Synonyms
-import blazern.langample.domain.model.LexicalItemDetail.WordTranslations
-import blazern.langample.domain.model.priority
-import blazern.langample.domain.model.toType
-import kotlin.reflect.KClass
+import kotlin.collections.plus
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Immutable
 internal data class SearchResultsState(
-    val forms: List<LexicalItemDetailState<Forms>> = emptyList(),
-    val wordTranslations: List<LexicalItemDetailState<WordTranslations>> = emptyList(),
-    val synonyms: List<LexicalItemDetailState<Synonyms>> = emptyList(),
-    val explanations: List<LexicalItemDetailState<Explanation>> = emptyList(),
-    val examples: List<LexicalItemDetailState<Example>> = emptyList(),
+    val groups: List<LexicalItemDetailsGroupState> = emptyList(),
 )
 
-internal fun SearchResultsState.add(
-    clazz: KClass<out LexicalItemDetail>,
-    new: LexicalItemDetailState<*>,
-): SearchResultsState {
-    val details = detailsOfType(clazz).toMutableList()
-    val lesserPriorityIndex = details.indexOfFirst { new.source.priority < it.source.priority }
-    val insertTo = if (lesserPriorityIndex != -1) {
-        lesserPriorityIndex
-    } else {
-        details.size
-    }
-    details.add(insertTo, new)
-    return copyWithNewDetails(
-        clazz,
-        details,
-    )
-}
-
-internal fun SearchResultsState.remove(
-    classes: List<KClass<out LexicalItemDetailState<*>>>,
+internal fun SearchResultsState.replaceAllButLoadedWith(
+    item: Item,
     source: DataSource,
+    types: Set<LexicalItemDetail.Type>,
 ): SearchResultsState {
-    var result = this
-    classes.forEach {
-        result = result.remove(it, source)
+    val predicate = { state: LexicalItemDetailsGroupState ->
+        state.source == source && state !is LexicalItemDetailsGroupState.Loaded
     }
-    return result
+    val id = groups.firstOrNull(predicate)?.id ?: randomId()
+    var result = this.removeAllButLoadedFor(source)
+    return when (item) {
+        is Item.Page -> result.add(id, item, source)
+        is Item.Failure -> result.addFailure(id, item, source, types)
+    }
 }
 
-private fun SearchResultsState.remove(
-    clazz: KClass<out LexicalItemDetailState<*>>,
+internal fun SearchResultsState.removeAllButLoadedFor(
     source: DataSource,
 ): SearchResultsState {
     return copy(
-        forms = forms.filterNot { it.javaClass == clazz.java && it.source == source },
-        wordTranslations = wordTranslations.filterNot { it.javaClass == clazz.java && it.source == source },
-        synonyms = synonyms.filterNot { it.javaClass == clazz.java && it.source == source },
-        explanations = explanations.filterNot { it.javaClass == clazz.java && it.source == source },
-        examples = examples.filterNot { it.javaClass == clazz.java && it.source == source },
-    )
-}
-
-internal fun SearchResultsState.replaceWithError(
-    source: DataSource,
-    classes: List<KClass<out LexicalItemDetailState<*>>>,
-    new: () -> LexicalItemDetailState.Error<*>,
-) = replaceManyImpl(source, classes, new)
-
-private fun SearchResultsState.replaceManyImpl(
-    source: DataSource,
-    classes: List<KClass<out LexicalItemDetailState<*>>>,
-    new: () -> LexicalItemDetailState<*>,
-): SearchResultsState {
-    var result = this
-    classes.forEach {
-        result = result.replace(source, it, new)
-    }
-    return result
-}
-
-private fun SearchResultsState.replace(
-    source: DataSource,
-    clazz: KClass<out LexicalItemDetailState<*>>,
-    new: () -> LexicalItemDetailState<*>,
-): SearchResultsState {
-    fun <R : LexicalItemDetail> List<LexicalItemDetailState<R>>
-            .replaced(): List<LexicalItemDetailState<R>> =
-        map { current ->
-            if (clazz.isInstance(current) && current.source == source) {
-                @Suppress("UNCHECKED_CAST")
-                new() as LexicalItemDetailState<R>
-            } else {
-                current
-            }
+        groups = groups.filter {
+            it.source != source || it is LexicalItemDetailsGroupState.Loaded
         }
-
-    return copy(
-        forms = forms.replaced(),
-        wordTranslations = wordTranslations.replaced(),
-        synonyms = synonyms.replaced(),
-        explanations = explanations.replaced(),
-        examples = examples.replaced(),
     )
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun SearchResultsState.copyWithNewDetails(
-    clazz: KClass<out LexicalItemDetail>,
-    updatedDetails: List<LexicalItemDetailState<out LexicalItemDetail>>,
+internal fun SearchResultsState.removeErrorsFor(
+    source: DataSource,
 ): SearchResultsState {
-    return when (LexicalItemDetail.toType(clazz)) {
-        LexicalItemDetail.Type.FORMS ->
-            copy(forms = updatedDetails as List<LexicalItemDetailState<Forms>>)
-        LexicalItemDetail.Type.WORD_TRANSLATIONS ->
-            copy(wordTranslations = updatedDetails as List<LexicalItemDetailState<WordTranslations>>)
-        LexicalItemDetail.Type.SYNONYMS ->
-            copy(synonyms = updatedDetails as List<LexicalItemDetailState<Synonyms>>)
-        LexicalItemDetail.Type.EXPLANATION ->
-            copy(explanations = updatedDetails as List<LexicalItemDetailState<Explanation>>)
-        LexicalItemDetail.Type.EXAMPLE ->
-            copy(examples = updatedDetails as List<LexicalItemDetailState<Example>>)
-    }
+    return copy(
+        groups = groups.filter {
+            it.source != source || it !is LexicalItemDetailsGroupState.Error
+        }
+    )
 }
 
-internal fun SearchResultsState.detailsOfType(
-    clazz: KClass<out LexicalItemDetail>,
-): List<LexicalItemDetailState<out LexicalItemDetail>> {
-    return when (LexicalItemDetail.toType(clazz)) {
-        LexicalItemDetail.Type.FORMS -> forms
-        LexicalItemDetail.Type.WORD_TRANSLATIONS -> wordTranslations
-        LexicalItemDetail.Type.SYNONYMS -> synonyms
-        LexicalItemDetail.Type.EXPLANATION -> explanations
-        LexicalItemDetail.Type.EXAMPLE -> examples
-    }
+internal fun SearchResultsState.add(
+    id: String,
+    page: Item.Page,
+    source: DataSource,
+): SearchResultsState {
+    return add(
+        LexicalItemDetailsGroupState.Loaded(
+            id = id,
+            details = page.details,
+            types = page.details.map { it.type }.toSet(),
+            source = source,
+        )
+    )
 }
+
+private fun SearchResultsState.add(
+    state: LexicalItemDetailsGroupState,
+): SearchResultsState {
+    return copy(
+        groups = (groups + listOf(state)).sortedBy { it.source.priority }
+    )
+}
+
+internal fun SearchResultsState.addFailure(
+    id: String,
+    failure: LexicalItemDetailsSource.Item.Failure,
+    source: DataSource,
+    types: Set<LexicalItemDetail.Type>,
+): SearchResultsState {
+    return add(
+        LexicalItemDetailsGroupState.Error(
+            id = id,
+            err = failure.err,
+            types = types,
+            source = source,
+        )
+    )
+}
+
+internal fun SearchResultsState.addLoadingFor(
+    source: DataSource,
+    types: Set<LexicalItemDetail.Type>,
+): SearchResultsState {
+    return add(LexicalItemDetailsGroupState.Loading(randomId(), types, source))
+}
+
+internal val DataSource.priority: Int
+    @Suppress("MagicNumber")
+    get() {
+        return when (this) {
+            DataSource.PANLEX -> 0
+            DataSource.TATOEBA -> 1
+            DataSource.CHATGPT -> 2
+            DataSource.KAIKKI -> 3
+            DataSource.WORTSCHATZ_LEIPZIG -> 4
+        }
+    }
+
+@OptIn(ExperimentalUuidApi::class)
+private fun randomId() = Uuid.random().toString()

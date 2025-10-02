@@ -11,12 +11,12 @@ import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Forms
-import blazern.langample.domain.model.toClass
-import blazern.langample.feature.search_result.model.LexicalItemDetailState
+import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
 import blazern.langample.feature.search_result.model.SearchResultsState
-import blazern.langample.feature.search_result.model.add
-import blazern.langample.feature.search_result.model.remove
-import blazern.langample.feature.search_result.model.replaceWithError
+import blazern.langample.feature.search_result.model.addLoadingFor
+import blazern.langample.feature.search_result.model.removeAllButLoadedFor
+import blazern.langample.feature.search_result.model.removeErrorsFor
+import blazern.langample.feature.search_result.model.replaceAllButLoadedWith
 import blazern.langample.utils.FlowIterator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +32,7 @@ internal class SearchResultsViewModel(
 ) : ViewModel() {
     private val loadingInProgress = mutableSetOf<DataSource>()
     private val dataIters = mutableMapOf<DataSource, LexicalItemDetailFlow>()
-    private val sourceTypes = mutableMapOf<DataSource, List<LexicalItemDetail.Type>>()
+    private val sourceTypes = mutableMapOf<DataSource, Set<LexicalItemDetail.Type>>()
     // NOTE: if new fields and responsibilities are being added, extract the 3 fields above and
     // a ton of related methods into a separate class.
 
@@ -49,28 +49,11 @@ internal class SearchResultsViewModel(
         _state.value = SearchResultsState()
         for (dataSource in dataSources) {
             val source = dataSource.source
-            sourceTypes[source] = dataSource.types
+            sourceTypes[source] = dataSource.types.toSet()
             val flow = dataSource.request(query, langFrom, langTo)
             dataIters[source] = FlowIterator(flow)
-            addLoadingsFor<LexicalItemDetail>(source)
+            continueLoadingFor(source)
         }
-    }
-
-    private fun <T : LexicalItemDetail> addLoadingsFor(source: DataSource) {
-        var newState = state.value.remove(
-            listOf(
-                LexicalItemDetailState.Loading::class,
-                LexicalItemDetailState.Error::class,
-            ),
-            source,
-        )
-        for (type in sourceTypes[source] ?: emptyList()) {
-            newState = newState.add(
-                type.toClass(),
-                LexicalItemDetailState.Loading<T>(type, source)
-            )
-        }
-        _state.value = newState
     }
 
     fun copyText(text: String, clipboard: Clipboard) {
@@ -85,13 +68,13 @@ internal class SearchResultsViewModel(
         }
     }
 
-    fun <T : LexicalItemDetail> onLoadingDetailVisible(
-        loading: LexicalItemDetailState.Loading<T>,
+    fun onLoadingDetailVisible(
+        loading: LexicalItemDetailsGroupState.Loading,
     ) {
-        continueLoadingFor<T>(loading.source)
+        continueLoadingFor(loading.source)
     }
 
-    private fun <T : LexicalItemDetail> continueLoadingFor(
+    private fun continueLoadingFor(
         source: DataSource,
     ) {
         val iter = dataIters[source] ?: return
@@ -100,54 +83,49 @@ internal class SearchResultsViewModel(
                 return@launch
             }
             loadingInProgress.add(source)
-            addLoadingsFor<T>(source)
+            val sourceTypes = sourceTypes[source].orEmpty()
+            _state.value = _state.value
+                .removeAllButLoadedFor(source)
+                .addLoadingFor(source, sourceTypes)
             val next = iter.next()
             if (next != null) {
-                onNextDetailResult<LexicalItemDetail>(next, source)
+                onNextDetailResult(next, source, sourceTypes)
             } else {
                 // The end
-                _state.value = _state.value.remove(
-                    listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
-                    source
-                )
+                _state.value = _state.value.removeAllButLoadedFor(source)
             }
             loadingInProgress.remove(source)
         }
     }
 
-    private fun <T : LexicalItemDetail> onNextDetailResult(
-        detailRes: Item,
+    private fun onNextDetailResult(
+        item: Item,
         source: DataSource,
+        requestedTypes: Set<LexicalItemDetail.Type>,
     ) {
-        when (detailRes) {
+        var state = _state.value
+        when (item) {
             is Item.Failure -> {
-                _state.value = _state.value.replaceWithError(
-                    source,
-                    listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
-                    { LexicalItemDetailState.Error<T>(detailRes.err, source) },
-                )
+                state = state.replaceAllButLoadedWith(item, source, requestedTypes)
             }
             is Item.Page -> {
-                _state.value = _state.value
-                    .remove(
-                        listOf(LexicalItemDetailState.Loading::class, LexicalItemDetailState.Error::class),
-                        source,
-                    )
-                val details = detailRes.details.mapNotNull { transform(it) }
-                if (details.isNotEmpty()) {
-                    var newState = _state.value
-                    details.forEach {
-                        newState = newState.add(it::class, LexicalItemDetailState.Loaded(it))
-                    }
-                    for (type in detailRes.nextPageTypes) {
-                        newState = newState.add(
-                            type.toClass(),
-                            LexicalItemDetailState.Loading<T>(type, source)
-                        )
-                    }
-                    _state.value = newState
+                val page = transform(item)
+                if (page != null) {
+                    state = state.replaceAllButLoadedWith(page, source, requestedTypes)
                 }
+                state = state.addLoadingFor(source, item.nextPageTypes)
+                sourceTypes[source] = item.nextPageTypes
             }
+        }
+        _state.value = state
+    }
+
+    private fun transform(page: Item.Page): Item.Page? {
+        val transformedDetails = page.details.mapNotNull { transform(it) }
+        return if (transformedDetails.isNotEmpty()) {
+            page.copy(details = transformedDetails)
+        } else {
+            null
         }
     }
 
@@ -174,7 +152,8 @@ internal class SearchResultsViewModel(
         return detail
     }
 
-    fun <T : LexicalItemDetail> onFixErrorRequest(error: LexicalItemDetailState.Error<T>) {
-        continueLoadingFor<T>(error.source)
+    fun onFixErrorRequest(error: LexicalItemDetailsGroupState.Error) {
+        _state.value = _state.value.removeErrorsFor(error.source)
+        continueLoadingFor(error.source)
     }
 }

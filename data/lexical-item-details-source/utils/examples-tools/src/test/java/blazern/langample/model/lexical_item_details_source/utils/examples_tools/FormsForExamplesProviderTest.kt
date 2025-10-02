@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class FormsForExamplesProviderTest {
-    private val types = listOf(LexicalItemDetail.Type.FORMS)
+    private val types = setOf(LexicalItemDetail.Type.FORMS)
     private val kaikki = mockk<KaikkiLexicalItemDetailsSource>()
     private val formsProvider = FormsForExamplesProvider(kaikki)
 

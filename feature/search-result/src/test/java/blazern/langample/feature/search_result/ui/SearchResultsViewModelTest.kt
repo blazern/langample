@@ -10,10 +10,9 @@ import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.domain.model.WordForm
-import blazern.langample.domain.model.priority
-import blazern.langample.domain.model.toClass
-import blazern.langample.feature.search_result.model.LexicalItemDetailState
-import blazern.langample.feature.search_result.model.detailsOfType
+import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
+import blazern.langample.feature.search_result.model.SearchResultsState
+import blazern.langample.feature.search_result.model.priority
 import blazern.langample.test_utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,14 +41,9 @@ class SearchResultsViewModelTest {
         )
 
         while (true) {
-            val loadings = LexicalItemDetail.Type.entries
-                .map { it.toClass() }
-                .map { viewModel.state.value.detailsOfType(it) }
-                .flatten()
-                .filterIsInstance<LexicalItemDetailState.Loading<*>>()
-            if (loadings.isEmpty()) {
-                break
-            }
+            val loadings = viewModel.state.value.groups
+                .filterIsInstance<LexicalItemDetailsGroupState.Loading>()
+            if (loadings.isEmpty()) break
             loadings.forEach { viewModel.onLoadingDetailVisible(it) }
             advanceUntilIdle()
         }
@@ -57,75 +51,80 @@ class SearchResultsViewModelTest {
         val sortedDataSources = List(detailsMultiplier) { DataSource.entries }
             .flatten()
             .sortedBy { it.priority }
-        LexicalItemDetail.Type.entries.forEach {
-            val details = viewModel.state.value.detailsOfType(it.toClass())
+
+        LexicalItemDetail.Type.entries.forEach { type ->
+            val loadedForType = viewModel.state.value.groups
+                .filterIsInstance<LexicalItemDetailsGroupState.Loaded>()
+                .filter { type in it.types }
+
             assertEquals(
                 sortedDataSources,
-                details.map { it.source },
-                details.toString(),
+                loadedForType.map { it.source },
+                loadedForType.toString(),
             )
         }
     }
 
     @Test
-    fun `forms are filtered and sources with zero accepted forms are dropped`()
-    = runTest(mainDispatcherRule.testDispatcher) {
-        val sourceAccepted = DataSource.entries[0]
-        val sourceRejected = DataSource.entries[1]
+    fun `forms are filtered and sources with zero accepted forms are dropped`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val sourceAccepted = DataSource.entries[0]
+            val sourceRejected = DataSource.entries[1]
 
-        val acceptedForms = listOf(
-            WordForm("tanzt", emptyList(), Lang.DE),
-            WordForm("die tanzen", emptyList(), Lang.DE),
-            WordForm("haben or sein", listOf(WordForm.Tag.Defined.Auxiliary("auxiliary")), Lang.DE),
-            WordForm("tanzt", emptyList(), Lang.DE),
-        )
-        val acceptedDetail = Forms(
-            Forms.Value.Detailed(acceptedForms),
-            sourceAccepted,
-        )
+            val acceptedForms = listOf(
+                WordForm("tanzt", emptyList(), Lang.DE),
+                WordForm("die tanzen", emptyList(), Lang.DE),
+                WordForm("haben or sein", listOf(WordForm.Tag.Defined.Auxiliary("auxiliary")), Lang.DE),
+                WordForm("tanzt", emptyList(), Lang.DE),
+            )
+            val acceptedDetail = Forms(
+                Forms.Value.Detailed(acceptedForms),
+                sourceAccepted,
+            )
 
-        val rejectedForms = listOf(
-            WordForm("habe getanzt", emptyList(), Lang.DE),
-            WordForm("haben or sein", listOf(WordForm.Tag.Defined.Auxiliary("auxiliary")), Lang.DE),
-            WordForm("der sehr tanzt", emptyList(), Lang.DE),
-            WordForm("tanzt!", emptyList(), Lang.DE)
-        )
-        val rejectedDetail = Forms(
-            Forms.Value.Detailed(rejectedForms),
-            sourceRejected
-        )
+            val rejectedForms = listOf(
+                WordForm("habe getanzt", emptyList(), Lang.DE),
+                WordForm("haben or sein", listOf(WordForm.Tag.Defined.Auxiliary("auxiliary")), Lang.DE),
+                WordForm("der sehr tanzt", emptyList(), Lang.DE),
+                WordForm("tanzt!", emptyList(), Lang.DE)
+            )
+            val rejectedDetail = Forms(
+                Forms.Value.Detailed(rejectedForms),
+                sourceRejected
+            )
 
-        val sources: List<LexicalItemDetailsSource> = listOf(
-            FakeLexicalItemDetailsSource(sourceAccepted, listOf(acceptedDetail)),
-            FakeLexicalItemDetailsSource(sourceRejected, listOf(rejectedDetail))
-        )
+            val sources: List<LexicalItemDetailsSource> = listOf(
+                FakeLexicalItemDetailsSource(sourceAccepted, listOf(acceptedDetail)),
+                FakeLexicalItemDetailsSource(sourceRejected, listOf(rejectedDetail))
+            )
 
-        val vm = SearchResultsViewModel(
-            startQuery = "query",
-            langFrom = Lang.EN,
-            langTo = Lang.DE,
-            dataSources = sources
-        )
+            val vm = SearchResultsViewModel(
+                startQuery = "query",
+                langFrom = Lang.EN,
+                langTo = Lang.DE,
+                dataSources = sources
+            )
 
-        // Drive loading until idle
-        while (true) {
-            val loadings = vm.state.value
-                .detailsOfType(LexicalItemDetail.Forms::class)
-                .filterIsInstance<LexicalItemDetailState.Loading<*>>()
-            if (loadings.isEmpty()) break
-            loadings.forEach { vm.onLoadingDetailVisible(it) }
-            advanceUntilIdle()
+            // Drive loading until idle
+            while (true) {
+                val loadings = vm.state.value.groups
+                    .filterIsInstance<LexicalItemDetailsGroupState.Loading>()
+                if (loadings.isEmpty()) break
+                loadings.forEach { vm.onLoadingDetailVisible(it) }
+                advanceUntilIdle()
+            }
+
+            val loadedFormGroups = vm.state.value.groups
+                .filterIsInstance<LexicalItemDetailsGroupState.Loaded>()
+                .filter { LexicalItemDetail.Type.FORMS in it.types }
+
+            // Only the accepted source should remain (rejected one filtered out completely)
+            assertEquals(listOf(sourceAccepted), loadedFormGroups.map { it.source })
+
+            val loadedForms = loadedFormGroups.single().details.single() as Forms
+            val value = loadedForms.value as Forms.Value.Detailed
+            assertEquals(listOf("tanzt", "die tanzen"), value.forms.map { it.withoutPronoun().text })
         }
-
-        val formsStates = vm.state.value.detailsOfType(Forms::class)
-        val loaded = formsStates.filterIsInstance<LexicalItemDetailState.Loaded<LexicalItemDetail>>()
-
-        assertEquals(listOf(sourceAccepted), loaded.map { it.source })
-
-        val loadedForms = loaded.single().detail as Forms
-        val value = loadedForms.value as Forms.Value.Detailed
-        assertEquals(listOf("tanzt", "die tanzen"), value.forms.map { it.withoutPronoun().text })
-    }
 
     private fun fullSourcesWithFullDetails(
         detailsMultiplier: Int = 1,
@@ -134,12 +133,14 @@ class SearchResultsViewModelTest {
         val sources = DataSource.entries.map { source ->
             var details = mutableListOf<LexicalItemDetail>()
             details += List(detailsMultiplier) {
-                LexicalItemDetail.Forms(
-                    LexicalItemDetail.Forms.Value.Text("forms $detailsMultiplier $it"),
+                Forms(
+                    Forms.Value.Text("forms $detailsMultiplier $it"),
                     source,
                 )
             }
-            details += List(detailsMultiplier) { LexicalItemDetail.Explanation("Wörter $detailsMultiplier $it", source)}
+            details += List(detailsMultiplier) {
+                LexicalItemDetail.Explanation("Wörter $detailsMultiplier $it", source)
+            }
             details += List(detailsMultiplier) {
                 LexicalItemDetail.WordTranslations(
                     TranslationsSet(
@@ -187,7 +188,7 @@ private class FakeLexicalItemDetailsSource(
     override val source: DataSource,
     val details: List<LexicalItemDetail>,
 ) : LexicalItemDetailsSource {
-    override val types = LexicalItemDetail.Type.entries.toList()
+    override val types = LexicalItemDetail.Type.entries.toSet()
 
     override fun request(
         query: String,

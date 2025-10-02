@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface LexicalItemDetailsSource {
     val source: DataSource
-    val types: List<LexicalItemDetail.Type>
+    val types: Set<LexicalItemDetail.Type>
 
-fun request(
+    fun request(
         query: String,
         langFrom: Lang,
         langTo: Lang,
@@ -20,7 +20,7 @@ fun request(
         data class Failure(val err: Err) : Item
         data class Page(
             val details: List<LexicalItemDetail>,
-            val nextPageTypes: List<LexicalItemDetail.Type>,
+            val nextPageTypes: Set<LexicalItemDetail.Type>,
             val errors: List<Err> = emptyList(),
         ) : Item {
             init {

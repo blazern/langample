@@ -58,6 +58,11 @@ private fun Form.toDomain(lang: Lang): WordForm {
 
 private fun String.toWordFormTag(): WordForm.Tag {
     return when (this.lowercase()) {
+        "nominative" -> WordForm.Tag.Defined.Nominative(this)
+        "accusative" -> WordForm.Tag.Defined.Accusative(this)
+        "dative" -> WordForm.Tag.Defined.Dative(this)
+        "genitive" -> WordForm.Tag.Defined.Genitive(this)
+        "active" -> WordForm.Tag.Defined.Active(this)
         "infinitive" -> WordForm.Tag.Defined.Infinitive(this)
         "participle" -> WordForm.Tag.Defined.Participle(this)
         "present" -> WordForm.Tag.Defined.Present(this)

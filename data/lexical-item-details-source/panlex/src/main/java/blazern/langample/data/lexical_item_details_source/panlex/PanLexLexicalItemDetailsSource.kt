@@ -30,7 +30,7 @@ class PanLexLexicalItemDetailsSource(
         get() = apolloClientHolder.client
 
     override val source = DataSource.PANLEX
-    override val types = listOf(
+    override val types = setOf(
         LexicalItemDetail.Type.WORD_TRANSLATIONS,
         LexicalItemDetail.Type.SYNONYMS,
     )

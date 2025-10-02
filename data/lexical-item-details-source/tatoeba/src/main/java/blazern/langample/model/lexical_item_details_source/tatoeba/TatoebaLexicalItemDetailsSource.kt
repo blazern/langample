@@ -19,7 +19,7 @@ class TatoebaLexicalItemDetailsSource(
     private val formsForExamplesProvider: FormsForExamplesProvider,
 ) : LexicalItemDetailsSource {
     override val source = DataSource.TATOEBA
-    override val types = listOf(LexicalItemDetail.Type.EXAMPLE)
+    override val types = setOf(LexicalItemDetail.Type.EXAMPLE)
 
     override fun request(
         query: String,

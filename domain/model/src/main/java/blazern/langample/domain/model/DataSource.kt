@@ -22,15 +22,3 @@ val DataSource.strRsc: Int
             DataSource.WORTSCHATZ_LEIPZIG -> R.string.general_data_source_wortschatz_leipzig
         }
     }
-
-val DataSource.priority: Int
-    @Suppress("MagicNumber")
-    get() {
-        return when (this) {
-            DataSource.PANLEX -> 0
-            DataSource.TATOEBA -> 1
-            DataSource.KAIKKI -> 2
-            DataSource.WORTSCHATZ_LEIPZIG -> 3
-            DataSource.CHATGPT -> 4
-        }
-    }
