@@ -30,7 +30,7 @@ class ChatGPTLexicalItemDetailsSource(
         get() = apolloClientHolder.client
 
     override val source = DataSource.CHATGPT
-    override val types = listOf(
+    override val types = setOf(
         LexicalItemDetail.Type.FORMS,
         LexicalItemDetail.Type.WORD_TRANSLATIONS,
         LexicalItemDetail.Type.SYNONYMS,

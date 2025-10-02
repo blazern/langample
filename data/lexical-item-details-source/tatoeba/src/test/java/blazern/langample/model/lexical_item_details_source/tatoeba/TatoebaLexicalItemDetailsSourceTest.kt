@@ -53,7 +53,7 @@ class TatoebaLexicalItemDetailsSourceTest {
     @Test
     fun `source and types`() = runBlocking {
         assertEquals(DataSource.TATOEBA, source.source)
-        assertEquals(listOf(LexicalItemDetail.Type.EXAMPLE), source.types)
+        assertEquals(setOf(LexicalItemDetail.Type.EXAMPLE), source.types)
     }
 
     @Test

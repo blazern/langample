@@ -63,7 +63,7 @@ class KaikkiLexicalItemDetailsSourceTest {
     fun `source id and supported types`() = runBlocking {
         assertEquals(DataSource.KAIKKI, source.source)
         assertEquals(
-            listOf(
+            setOf(
                 LexicalItemDetail.Type.FORMS,
                 LexicalItemDetail.Type.EXPLANATION,
                 LexicalItemDetail.Type.EXAMPLE,

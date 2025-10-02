@@ -29,7 +29,7 @@ class LexicalItemDetailsSourceCacherTest {
         LexicalItemDetail.Explanation("3", source),
     )
     private val detailsFlow: Flow<Item> =
-        details.map { Item.Page(listOf(it), listOf(LexicalItemDetail.Type.EXAMPLE)) }.asFlow()
+        details.map { Item.Page(listOf(it), setOf(LexicalItemDetail.Type.EXAMPLE)) }.asFlow()
 
     @Test
     fun `happy path`() = runTest {
@@ -116,7 +116,7 @@ class LexicalItemDetailsSourceCacherTest {
         val execute = {
             executeCalls.incrementAndGet()
             flow {
-                for (v in emitted) emit(Item.Page(listOf(v), listOf(LexicalItemDetail.Type.EXAMPLE)))
+                for (v in emitted) emit(Item.Page(listOf(v), setOf(LexicalItemDetail.Type.EXAMPLE)))
             }
         }
 
@@ -165,9 +165,9 @@ class LexicalItemDetailsSourceCacherTest {
             executeCalls.incrementAndGet()
             flow {
                 emit(Item.Failure(Err.from(e1)))
-                emit(Item.Page(listOf(details[0]), listOf(LexicalItemDetail.Type.EXAMPLE)))
+                emit(Item.Page(listOf(details[0]), setOf(LexicalItemDetail.Type.EXAMPLE)))
                 emit(Item.Failure(Err.from(e2)))
-                emit(Item.Page(listOf(details[1]), listOf(LexicalItemDetail.Type.EXAMPLE)))
+                emit(Item.Page(listOf(details[1]), setOf(LexicalItemDetail.Type.EXAMPLE)))
             }
         }
 
@@ -178,16 +178,16 @@ class LexicalItemDetailsSourceCacherTest {
         assertEquals(
             listOf(
                 Item.Failure(Err.from(e1)),
-                Item.Page(listOf(details[0]), listOf(LexicalItemDetail.Type.EXAMPLE)),
+                Item.Page(listOf(details[0]), setOf(LexicalItemDetail.Type.EXAMPLE)),
                 Item.Failure(Err.from(e2)),
-                Item.Page(listOf(details[1]), listOf(LexicalItemDetail.Type.EXAMPLE))
+                Item.Page(listOf(details[1]), setOf(LexicalItemDetail.Type.EXAMPLE))
             ), first
         )
         // no errors replayed
         assertEquals(
             listOf(
-                Item.Page(listOf(details[0]), listOf(LexicalItemDetail.Type.EXAMPLE)),
-                Item.Page(listOf(details[1]), listOf(LexicalItemDetail.Type.EXAMPLE))
+                Item.Page(listOf(details[0]), setOf(LexicalItemDetail.Type.EXAMPLE)),
+                Item.Page(listOf(details[1]), setOf(LexicalItemDetail.Type.EXAMPLE))
             ),
             second
         )
@@ -228,7 +228,7 @@ class LexicalItemDetailsSourceCacherTest {
         }
 
         // Emit first item, job1 will receive it and then block.
-        upstream.send(Item.Page(listOf(details[0]), listOf(LexicalItemDetail.Type.EXAMPLE)))
+        upstream.send(Item.Page(listOf(details[0]), setOf(LexicalItemDetail.Type.EXAMPLE)))
         runCurrent()
         // Wait until job1 has collected the first item
         blockFirstAfterFirstItem.receive()
@@ -244,7 +244,7 @@ class LexicalItemDetailsSourceCacherTest {
         assertEquals(detailsFlow.take(1).toList(), results2)
 
         // Emit second item; fast collector should advance even while job1 is blocked
-        upstream.send(Item.Page(listOf(details[1]), listOf(LexicalItemDetail.Type.EXAMPLE)))
+        upstream.send(Item.Page(listOf(details[1]), setOf(LexicalItemDetail.Type.EXAMPLE)))
         runCurrent()
         assertEquals(detailsFlow.take(2).toList(), results2)
 
@@ -282,7 +282,7 @@ class LexicalItemDetailsSourceCacherTest {
                     .collect { results1 += it }
             }
 
-            upstream.send(Item.Page(listOf(details[0]), listOf(LexicalItemDetail.Type.EXAMPLE)))
+            upstream.send(Item.Page(listOf(details[0]), setOf(LexicalItemDetail.Type.EXAMPLE)))
             runCurrent()
             assertEquals(detailsFlow.take(1).toList(), results1)
 
@@ -297,8 +297,8 @@ class LexicalItemDetailsSourceCacherTest {
             runCurrent()
             assertEquals(detailsFlow.take(1).toList(), results2)
 
-            upstream.send(Item.Page(listOf(details[1]), listOf(LexicalItemDetail.Type.EXAMPLE)))
-            upstream.send(Item.Page(listOf(details[2]), listOf(LexicalItemDetail.Type.EXAMPLE)))
+            upstream.send(Item.Page(listOf(details[1]), setOf(LexicalItemDetail.Type.EXAMPLE)))
+            upstream.send(Item.Page(listOf(details[2]), setOf(LexicalItemDetail.Type.EXAMPLE)))
             runCurrent()
 
             assertEquals(detailsFlow.take(1).toList(), results1)

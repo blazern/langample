@@ -138,7 +138,7 @@ class PanLexLexicalItemDetailsSourceTest {
     fun `source id and supported types`() = runBlocking {
         assertEquals(PANLEX, source.source)
         assertEquals(
-            listOf(
+            setOf(
                 LexicalItemDetail.Type.WORD_TRANSLATIONS,
                 LexicalItemDetail.Type.SYNONYMS,
             ),

@@ -34,13 +34,13 @@ import blazern.langample.core.strings.R
 import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
+import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Example
 import blazern.langample.domain.model.LexicalItemDetail.Explanation
 import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
-import blazern.langample.feature.search_result.model.LexicalItemDetailState
-import blazern.langample.feature.search_result.model.LexicalItemDetailState.Error
+import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
 import blazern.langample.feature.search_result.model.SearchResultsState
 import blazern.langample.feature.search_result.ui.list.LexicalItemDetailCallbacks
 import blazern.langample.theme.LangampleTheme
@@ -51,8 +51,8 @@ internal fun SearchResultsScreen(
     query: String,
     state: SearchResultsState,
     onTextCopy: (String, Clipboard)->Unit,
-    onLoadingDetailVisible: (LexicalItemDetailState.Loading<*>) -> Unit,
-    onFixErrorRequest: (Error<*>) -> Unit,
+    onLoadingDetailVisible: (LexicalItemDetailsGroupState.Loading) -> Unit,
+    onFixErrorRequest: (LexicalItemDetailsGroupState.Error) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -80,7 +80,6 @@ internal fun SearchResultsScreen(
                 .background(MaterialTheme.colorScheme.surface)
                 .statusBarsPadding()
                 .padding(top = 24.dp, bottom = 8.dp, start = 16.dp, end = 16.dp)
-                .zIndex(1f), // Because items of [FoundSearchResults] somehow are drawn on top otherwise
             ) {
                 FlowRow {
                     Text(
@@ -99,9 +98,10 @@ internal fun SearchResultsScreen(
             }
             val callbacks = object : LexicalItemDetailCallbacks {
                 override fun onTextCopy(text: String) = onTextCopyWrapper(text)
-                override fun onLoadingDetailVisible(loading: LexicalItemDetailState.Loading<*>) =
+                override fun onLoadingDetailVisible(loading: LexicalItemDetailsGroupState.Loading) =
                     onLoadingDetailVisible(loading)
-                override fun onFixErrorRequest(error: Error<*>) = onFixErrorRequest(error)
+                override fun onFixErrorRequest(error: LexicalItemDetailsGroupState.Error) =
+                    onFixErrorRequest(error)
             }
             FoundSearchResults(
                 state = state,
@@ -111,59 +111,79 @@ internal fun SearchResultsScreen(
     }
 }
 
-
 @PreviewScreenSizes
 @Preview(device = PIXEL_3A_XL, name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
 private fun PreviewAllGood() {
     val state = SearchResultsState(
-        forms = listOf(LexicalItemDetailState.Loaded(Forms(
-            Forms.Value.Text("der Hund, -e"),
-            DataSource.CHATGPT),
-        )),
-        explanations = listOf(LexicalItemDetailState.Loaded(Explanation("Hund is Dog", DataSource.CHATGPT))),
-        examples = listOf(
-            LexicalItemDetailState.Loaded(
-                Example(
-                TranslationsSet(
-                    Sentence("The dog barks", Lang.EN, DataSource.TATOEBA),
-                    listOf(Sentence("Der Hund bellt", Lang.DE, DataSource.TATOEBA)),
-                    listOf(TranslationsSet.QUALITY_MAX),
+        groups = listOf(
+            // Forms
+            LexicalItemDetailsGroupState.Loaded(
+                id = "1",
+                details = listOf(
+                    Forms(
+                        Forms.Value.Text("der Hund, -e"),
+                        DataSource.CHATGPT,
+                    )
                 ),
-                DataSource.CHATGPT,
-            )
+                types = setOf(LexicalItemDetail.Type.FORMS),
+                source = DataSource.CHATGPT,
             ),
-            LexicalItemDetailState.Loaded(
-                Example(
-                TranslationsSet(
-                    Sentence("The dog sits", Lang.EN, DataSource.CHATGPT),
-                    listOf(
-                        Sentence("Der Hund sitzt", Lang.DE, DataSource.CHATGPT),
-                        Sentence("Собака сидит", Lang.RU, DataSource.CHATGPT),
-                    ),
-                    listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
+
+            // Explanations
+            LexicalItemDetailsGroupState.Loaded(
+                id = "2",
+                details = listOf(
+                    Explanation("Hund is Dog", DataSource.CHATGPT)
                 ),
-                DataSource.CHATGPT,
-            )
+                types = setOf(LexicalItemDetail.Type.EXPLANATION),
+                source = DataSource.CHATGPT,
             ),
-            LexicalItemDetailState.Loaded(
-                Example(
-                TranslationsSet(
-                    Sentence("A dog sits on a sofa and looks at me", Lang.EN, DataSource.CHATGPT),
-                    listOf(
-                        Sentence(
-                            "Ein Hund sitzt auf dem Sofa und guckt mich an",
-                            Lang.DE,
-                            DataSource.CHATGPT,
-                        )
+
+            // Examples
+            LexicalItemDetailsGroupState.Loaded(
+                id = "3",
+                details = listOf(
+                    Example(
+                        TranslationsSet(
+                            Sentence("The dog barks", Lang.EN, DataSource.TATOEBA),
+                            listOf(Sentence("Der Hund bellt", Lang.DE, DataSource.TATOEBA)),
+                            listOf(TranslationsSet.QUALITY_MAX),
+                        ),
+                        DataSource.CHATGPT,
                     ),
-                    listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
+                    Example(
+                        TranslationsSet(
+                            Sentence("The dog sits", Lang.EN, DataSource.CHATGPT),
+                            listOf(
+                                Sentence("Der Hund sitzt", Lang.DE, DataSource.CHATGPT),
+                                Sentence("Собака сидит", Lang.RU, DataSource.CHATGPT),
+                            ),
+                            listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
+                        ),
+                        DataSource.CHATGPT,
+                    ),
+                    Example(
+                        TranslationsSet(
+                            Sentence("A dog sits on a sofa and looks at me", Lang.EN, DataSource.CHATGPT),
+                            listOf(
+                                Sentence(
+                                    "Ein Hund sitzt auf dem Sofa und guckt mich an",
+                                    Lang.DE,
+                                    DataSource.CHATGPT,
+                                )
+                            ),
+                            listOf(TranslationsSet.QUALITY_MAX, TranslationsSet.QUALITY_MAX),
+                        ),
+                        DataSource.CHATGPT,
+                    ),
                 ),
-                DataSource.CHATGPT,
-            )
-            )
-        ),
+                types = setOf(LexicalItemDetail.Type.EXAMPLE),
+                source = DataSource.CHATGPT,
+            ),
+        )
     )
+
     LangampleTheme {
         SearchResultsScreen(
             query = "Hund",
@@ -175,19 +195,43 @@ private fun PreviewAllGood() {
     }
 }
 
-
 @PreviewScreenSizes
 @Preview(device = PIXEL_3A_XL, name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
 private fun PreviewErrors() {
     val state = SearchResultsState(
-        forms = listOf(Error(Err.Other(null), DataSource.CHATGPT)),
-        explanations = listOf(Error(Err.Other(null), DataSource.CHATGPT)),
-        examples = listOf(
-            Error(Err.Other(null), DataSource.TATOEBA),
-            Error(Err.Other(null), DataSource.CHATGPT)
-        ),
+        groups = listOf(
+            // Forms error
+            LexicalItemDetailsGroupState.Error(
+                id = "1",
+                err = Err.Other(null),
+                types = setOf(LexicalItemDetail.Type.FORMS),
+                source = DataSource.CHATGPT,
+            ),
+            // Explanations error
+            LexicalItemDetailsGroupState.Error(
+                id = "2",
+                err = Err.Other(null),
+                types = setOf(LexicalItemDetail.Type.EXPLANATION),
+                source = DataSource.CHATGPT,
+            ),
+            // Examples error from TATOEBA
+            LexicalItemDetailsGroupState.Error(
+                id = "3",
+                err = Err.Other(null),
+                types = setOf(LexicalItemDetail.Type.EXAMPLE),
+                source = DataSource.TATOEBA,
+            ),
+            // Examples error from ChatGPT
+            LexicalItemDetailsGroupState.Error(
+                id = "3",
+                err = Err.Other(null),
+                types = setOf(LexicalItemDetail.Type.EXAMPLE),
+                source = DataSource.CHATGPT,
+            ),
+        )
     )
+
     LangampleTheme {
         SearchResultsScreen(
             query = "Herangehensweise",

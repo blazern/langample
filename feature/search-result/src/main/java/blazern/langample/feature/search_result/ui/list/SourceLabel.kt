@@ -1,4 +1,4 @@
-package blazern.langample.feature.search_result.ui
+package blazern.langample.feature.search_result.ui.list
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding

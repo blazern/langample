@@ -13,40 +13,48 @@ data class WordForm(
         get() = text.split(delimiter).size
     val auxiliary: Boolean
         get() = tags.any { it is Tag.Defined.Auxiliary }
+    val importance: Int
+        get() = calculateImportanceOf(this)
+
     fun withoutPronoun(): WordForm = this.without(pronounsOf(lang))
     fun withoutArticle(): WordForm = this.without(articlesOf(lang))
 
-    sealed class Tag(open val value: String) {
+    sealed interface Tag {
+        val value: String
+
         data class Undefined(
             override val value: String,
-        ) : Tag(value)
+        ) : Tag
 
-        sealed class Defined(
-            override val value: String,
-        ) : Tag(value) {
-            data class Infinitive(override val value: String) : Defined(value)
-            data class Participle(override val value: String) : Defined(value)
-            data class Present(override val value: String) : Defined(value)
-            data class Past(override val value: String) : Defined(value)
-            data class Indicative(override val value: String) : Defined(value)
-            data class SubjunctiveI(override val value: String) : Defined(value)
-            data class SubjunctiveII(override val value: String) : Defined(value)
-            data class Imperative(override val value: String) : Defined(value)
-            data class Preterite(override val value: String) : Defined(value)
-            data class Perfect(override val value: String) : Defined(value)
-            data class Pluperfect(override val value: String) : Defined(value)
-            data class FutureI(override val value: String) : Defined(value)
-            data class FutureII(override val value: String) : Defined(value)
-            data class FirstPerson(override val value: String) : Defined(value)
-            data class SecondPerson(override val value: String) : Defined(value)
-            data class ThirdPerson(override val value: String) : Defined(value)
-            data class Singular(override val value: String) : Defined(value)
-            data class Plural(override val value: String) : Defined(value)
-            data class Informal(override val value: String) : Defined(value)
-            data class Formal(override val value: String) : Defined(value)
-            data class Rare(override val value: String) : Defined(value)
-            data class MultiwordConstruction(override val value: String) : Defined(value)
-            data class Auxiliary(override val value: String) : Defined(value)
+        sealed interface Defined : Tag {
+            data class Nominative(override val value: String) : Defined
+            data class Accusative(override val value: String) : Defined
+            data class Dative(override val value: String) : Defined
+            data class Genitive(override val value: String) : Defined
+            data class Active(override val value: String) : Defined
+            data class Infinitive(override val value: String) : Defined
+            data class Participle(override val value: String) : Defined
+            data class Present(override val value: String) : Defined
+            data class Past(override val value: String) : Defined
+            data class Indicative(override val value: String) : Defined
+            data class SubjunctiveI(override val value: String) : Defined
+            data class SubjunctiveII(override val value: String) : Defined
+            data class Imperative(override val value: String) : Defined
+            data class Preterite(override val value: String) : Defined
+            data class Perfect(override val value: String) : Defined
+            data class Pluperfect(override val value: String) : Defined
+            data class FutureI(override val value: String) : Defined
+            data class FutureII(override val value: String) : Defined
+            data class FirstPerson(override val value: String) : Defined
+            data class SecondPerson(override val value: String) : Defined
+            data class ThirdPerson(override val value: String) : Defined
+            data class Singular(override val value: String) : Defined
+            data class Plural(override val value: String) : Defined
+            data class Informal(override val value: String) : Defined
+            data class Formal(override val value: String) : Defined
+            data class Rare(override val value: String) : Defined
+            data class MultiwordConstruction(override val value: String) : Defined
+            data class Auxiliary(override val value: String) : Defined
         }
     }
 }
@@ -67,9 +75,23 @@ private fun articlesOf(lang: Lang) = when (lang) {
     Lang.FR -> setOf("le", "la", "les", "l'", "l’", "un", "une", "des", "du", "au", "aux")
 }
 
-
 private fun WordForm.without(parts: Set<String>): WordForm =
     this.copy(text = text
         .split(delimiter)
         .filter { !parts.contains(it) }
         .joinToString(" "))
+
+private fun calculateImportanceOf(form: WordForm): Int {
+    return form.tags.sumOf {
+        when (it) {
+            // Verbs
+            is WordForm.Tag.Defined.Infinitive -> 1
+            is WordForm.Tag.Defined.Present -> 1
+            is WordForm.Tag.Defined.Active -> 1
+            // Nouns
+            is WordForm.Tag.Defined.Singular -> 1
+            is WordForm.Tag.Defined.Nominative -> 1
+            else -> 0
+        }
+    }
+}

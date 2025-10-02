@@ -95,7 +95,7 @@ class WortschatzLeipzigLexicalItemDetailsSourceTest {
     @Test
     fun `source id and supported types`() = runTest {
         assertEquals(DataSource.WORTSCHATZ_LEIPZIG, source.source)
-        assertEquals(listOf(LexicalItemDetail.Type.EXAMPLE), source.types)
+        assertEquals(setOf(LexicalItemDetail.Type.EXAMPLE), source.types)
     }
 
     @Test
