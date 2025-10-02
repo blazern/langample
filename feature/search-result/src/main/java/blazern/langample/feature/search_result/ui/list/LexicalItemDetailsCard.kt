@@ -15,6 +15,12 @@ import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
@@ -32,40 +38,51 @@ import blazern.langample.domain.model.WordForm.Tag.Defined.Plural
 import blazern.langample.domain.model.WordForm.Tag.Defined.Singular
 import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
 
-
 @Composable
 internal fun LexicalItemDetailsCard(
     state: LexicalItemDetailsGroupState,
     callbacks: LexicalItemDetailCallbacks,
 ) {
-    val cardColors = if (state !is LexicalItemDetailsGroupState.Error) {
-        CardDefaults.cardColors()
-    } else {
-        CardDefaults.cardColors().copy(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError,
-        )
-    }
-    Card(colors = cardColors) {
-        when (state) {
-            is LexicalItemDetailsGroupState.Loaded -> {
-                LexicalItemDetailsCardContent(
-                    state.details,
-                    state.source,
-                    cardColors.contentColor,
-                    callbacks,
-                )
-            }
-            is LexicalItemDetailsGroupState.Loading -> {
-                LoadingContent(state.source, callbacks)
+    val defaultColors = CardDefaults.cardColors()
+    val isError = state is LexicalItemDetailsGroupState.Error
+    val containerColor = if (isError) MaterialTheme.colorScheme.error else defaultColors.containerColor
+    val contentColor = if (isError) MaterialTheme.colorScheme.onError else defaultColors.contentColor
+    val containerColorAnimated by animateColorAsState(containerColor)
+    val contentColorAnimated by animateColorAsState(contentColor)
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = containerColorAnimated,
+            contentColor = contentColorAnimated,
+        ),
+        modifier = Modifier.animateContentSize(animationSpec = spring()),
+    ) {
+        if (state is LexicalItemDetailsGroupState.Loading) {
+            LaunchedEffect(state.id) {
                 callbacks.onLoadingDetailVisible(state)
             }
-            is LexicalItemDetailsGroupState.Error -> {
-                ErrorContent(
-                    state,
-                    cardColors.contentColor,
-                    callbacks,
-                )
+        }
+
+        Crossfade(targetState = state, label = "lexicalItemState") { target ->
+            when (target) {
+                is LexicalItemDetailsGroupState.Loaded -> {
+                    LexicalItemDetailsCardContent(
+                        target.details,
+                        target.source,
+                        contentColorAnimated,
+                        callbacks,
+                    )
+                }
+                is LexicalItemDetailsGroupState.Loading -> {
+                    LoadingContent(target.source, callbacks)
+                }
+                is LexicalItemDetailsGroupState.Error -> {
+                    ErrorContent(
+                        target,
+                        contentColorAnimated,
+                        callbacks,
+                    )
+                }
             }
         }
     }
