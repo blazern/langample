@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Forms
+import blazern.langample.domain.model.WordForm
 import blazern.langample.domain.model.strRsc
 
 @Suppress("MagicNumber")
@@ -64,11 +65,20 @@ internal fun selectHeader(details: List<LexicalItemDetail>): SelectedHeader? {
             )
             is Forms.Value.Detailed -> {
                 if (value.forms.isNotEmpty()) {
+                    val singular = value.forms
+                        .filter { it.tags.any { it is WordForm.Tag.Defined.Singular } }
+                        .sortedBy { it.importance }
+                        .asReversed()
+                        .firstOrNull()
+                    val plural = value.forms
+                        .filter { it.tags.any { it is WordForm.Tag.Defined.Plural } }
+                        .sortedBy { it.importance }
+                        .asReversed()
+                        .firstOrNull()
+                    val text = listOfNotNull(singular?.text, plural?.text)
+                        .joinToString(", ")
                     return SelectedHeader(
-                        text = value.forms
-                            .sortedBy { it.importance }
-                            .asReversed()
-                            .first().text,
+                        text = text,
                         sourceDetail = forms,
                         detailConsumed = false,
                     )
