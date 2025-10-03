@@ -33,7 +33,6 @@ class TatoebaLexicalItemDetailsSourceTest {
     }
     private val source = TatoebaLexicalItemDetailsSource(
         tatoeba,
-        LexicalItemDetailsSourceCacher.NOOP,
         formsProvider,
     )
 

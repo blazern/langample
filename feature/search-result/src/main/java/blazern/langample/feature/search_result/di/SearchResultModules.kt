@@ -9,10 +9,10 @@ fun searchResultModules() = listOf(
     module {
         viewModel { (query: String, langFrom: Lang, langTo: Lang) ->
             SearchResultsViewModel(
-                startQuery = query,
+                query = query,
                 langFrom = langFrom,
                 langTo = langTo,
-                dataSources = getAll(),
+                dataSource = get(),
             )
         }
     }

@@ -15,9 +15,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices.PIXEL_3A_XL
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,14 +31,9 @@ import blazern.langample.domain.error.Err
 import blazern.langample.domain.model.DataSource
 import blazern.langample.domain.model.Lang
 import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
+import blazern.langample.domain.model.TextAccent
 import blazern.langample.domain.model.TranslationsSet
-import blazern.langample.domain.model.WordForm
-import blazern.langample.domain.model.WordForm.Tag.Defined.Genitive
-import blazern.langample.domain.model.WordForm.Tag.Defined.Nominative
-import blazern.langample.domain.model.WordForm.Tag.Defined.Plural
-import blazern.langample.domain.model.WordForm.Tag.Defined.Singular
 import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
 
 
@@ -64,8 +63,8 @@ internal fun ExampleCard(
     ) {
         when (state) {
             is ExampleState.Loaded -> {
-                val bg1 = MaterialTheme.colorScheme.surfaceContainerLowest
-                val bg2 = MaterialTheme.colorScheme.surfaceContainerLow
+                val bg1 = MaterialTheme.colorScheme.secondaryContainer
+                val bg2 = MaterialTheme.colorScheme.surfaceContainer
                 ExampleContent(
                     example = state.example,
                     contentColor = cardColors.contentColor,
@@ -125,6 +124,19 @@ private fun SentenceLine(
     textColor: Color,
     callbacks: LexicalItemDetailCallbacks,
 ) {
+    val textAccented = remember(sentence.text, sentence.textAccents) {
+        buildAnnotatedString {
+            append(sentence.text)
+            sentence.textAccents.forEach {
+                addStyle(SpanStyle(
+                    fontWeight = FontWeight.Bold),
+                    start = it.start,
+                    end = it.end,
+                )
+            }
+        }
+    }
+
     Box(contentAlignment = Alignment.Center,
         modifier = Modifier
             .heightIn(min = 40.dp)
@@ -133,7 +145,7 @@ private fun SentenceLine(
             .clickable { callbacks.onTextCopy(sentence.text) },
     ) {
         Text(
-            sentence.text,
+            textAccented,
             color = textColor,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(
@@ -146,6 +158,7 @@ private fun SentenceLine(
 }
 
 
+@Suppress("MagicNumber")
 @PreviewScreenSizes
 @Preview(device = PIXEL_3A_XL, name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
@@ -153,16 +166,21 @@ private fun PreviewAll() {
     val examples1 = listOf(
         LexicalItemDetail.Example(
             TranslationsSet(
-                Sentence("Hund", Lang.EN, DataSource.KAIKKI),
-                listOf(Sentence("dog", Lang.DE, DataSource.KAIKKI)),
+                Sentence("Hund", Lang.DE, DataSource.KAIKKI),
+                listOf(Sentence("dog", Lang.EN, DataSource.KAIKKI)),
                 listOf(TranslationsSet.QUALITY_MAX),
             ),
             DataSource.KAIKKI,
         ),
         LexicalItemDetail.Example(
             TranslationsSet(
-                Sentence("Der Hund sitzt", Lang.EN, DataSource.KAIKKI),
-                listOf(Sentence("the dog sits", Lang.DE, DataSource.KAIKKI)),
+                Sentence(
+                    "Der Hund sitzt",
+                    Lang.DE,
+                    DataSource.KAIKKI,
+                    setOf(TextAccent(4, 8)),
+                ),
+                listOf(Sentence("the dog sits", Lang.EN, DataSource.KAIKKI)),
                 listOf(TranslationsSet.QUALITY_MAX),
             ),
             DataSource.KAIKKI,
@@ -172,7 +190,12 @@ private fun PreviewAll() {
     val examples2 = listOf(
         LexicalItemDetail.Example(
             TranslationsSet(
-                Sentence("Mein Lieblingshund", Lang.EN, DataSource.CHATGPT),
+                Sentence(
+                    "Mein Lieblingshund",
+                    Lang.DE,
+                    DataSource.CHATGPT,
+                    setOf(TextAccent(14, 18))
+                ),
                 listOf(Sentence("my favorite dog", Lang.DE, DataSource.CHATGPT)),
                 listOf(TranslationsSet.QUALITY_MAX),
             ),
