@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Related(
-    val word: String
+    val word: String? = null,
 )

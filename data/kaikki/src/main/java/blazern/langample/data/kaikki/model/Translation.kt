@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Translation(
     val sense: String? = null,
-    val word: String,
+    val word: String? = null,
     @SerialName("lang_code")
-    val langCode: String,
+    val langCode: String? = null,
     val tags: List<String>? = null
 )
