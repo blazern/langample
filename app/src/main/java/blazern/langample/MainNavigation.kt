@@ -7,9 +7,8 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.compose.material3.Text
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
+import androidx.navigation3.scene.rememberSceneSetupNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
-import blazern.langample.domain.model.Lang
 import blazern.langample.feature.home.HomeRoute
 import blazern.langample.feature.search_result.SearchResultsRoute
 
