@@ -1,5 +1,7 @@
 package blazern.langample.feature.search_result.ui
 
+import arrow.core.Either.Right
+import blazern.langample.data.lexical_item_details_source.aggregation.LexicalItemDetailsSourceAggregator
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.langample.domain.model.DataSource
@@ -11,9 +13,13 @@ import blazern.langample.domain.model.TranslationsSet
 import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.domain.model.WordForm
 import blazern.langample.feature.search_result.model.LexicalItemDetailsGroupState
-import blazern.langample.feature.search_result.model.SearchResultsState
 import blazern.langample.feature.search_result.model.priority
+import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsAccentsEnhancer
+import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsAccentsEnhancerProvider
 import blazern.langample.test_utils.MainDispatcherRule
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -29,15 +35,27 @@ class SearchResultsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private val accentsEnhancer = mockk<FormsAccentsEnhancer> {
+        every { enhance(any()) } answers {
+            it.invocation.args[0] as Sentence
+        }
+    }
+    private val accentsEnhancerProvider = mockk<FormsAccentsEnhancerProvider> {
+        coEvery { provideFor(any(), any(), any()) } returns Right(accentsEnhancer)
+    }
+
+    private fun List<LexicalItemDetailsSource>.aggregate() =
+        LexicalItemDetailsSourceAggregator(this, accentsEnhancerProvider)
+
     @Test
     fun `received lexical items details sorting`() = runTest(mainDispatcherRule.testDispatcher) {
         val detailsMultiplier = 2
         val sources = fullSourcesWithFullDetails(detailsMultiplier = detailsMultiplier)
         val viewModel = SearchResultsViewModel(
-            startQuery = "query",
+            query = "query",
             langFrom = Lang.EN,
             langTo = Lang.DE,
-            dataSources = sources,
+            dataSource = sources.aggregate(),
         )
 
         while (true) {
@@ -99,10 +117,10 @@ class SearchResultsViewModelTest {
             )
 
             val vm = SearchResultsViewModel(
-                startQuery = "query",
+                query = "query",
                 langFrom = Lang.EN,
                 langTo = Lang.DE,
-                dataSources = sources
+                dataSource = sources.aggregate(),
             )
 
             // Drive loading until idle

@@ -46,3 +46,9 @@ data class TranslationsSet private constructor(
         private const val TAG = "TranslationsSet"
     }
 }
+
+fun TranslationsSet.copy(
+    original: Sentence = this.original,
+    translations: List<Sentence> = this.translations,
+    translationsQualities: List<Int> = this.translationsQualities,
+): TranslationsSet = TranslationsSet(original, translations, translationsQualities)
