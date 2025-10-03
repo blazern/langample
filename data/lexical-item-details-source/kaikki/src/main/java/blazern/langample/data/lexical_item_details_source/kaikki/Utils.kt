@@ -47,22 +47,24 @@ internal fun Entry.toDetails(
     }
     val translations = translations.filter { it.langCode == langTo.iso2 }
     if (translations.isNotEmpty()) {
+        val words = translations.mapNotNull { it.word }
         result += LexicalItemDetail.WordTranslations(
             TranslationsSet(
                 original = Sentence(word, langFrom, src),
-                translations = translations.map { Sentence(it.word, langTo, src) },
-                translationsQualities = translations.map { QUALITY_MAX },
+                translations = words.map { Sentence(it, langTo, src) },
+                translationsQualities = words.map { QUALITY_MAX },
             ),
             src,
         )
     }
     val synonyms = synonyms + coordinateTerms
     if (synonyms.isNotEmpty()) {
+        val words = synonyms.mapNotNull { it.word }
         result += LexicalItemDetail.Synonyms(
             TranslationsSet(
                 original = Sentence(word, langFrom, src),
-                translations = synonyms.map { Sentence(it.word, langFrom, src) },
-                translationsQualities = synonyms.map { QUALITY_MAX },
+                translations = words.map { Sentence(it, langFrom, src) },
+                translationsQualities = words.map { QUALITY_MAX },
             ),
             src,
         )
