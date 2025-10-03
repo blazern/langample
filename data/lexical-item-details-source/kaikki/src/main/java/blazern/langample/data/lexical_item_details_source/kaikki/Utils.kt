@@ -8,42 +8,64 @@ import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Explanation
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
-import blazern.langample.domain.model.TranslationsSet.Companion.invoke
+import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.domain.model.WordForm
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 internal fun Entry.toDetails(
     langFrom: Lang,
     langTo: Lang,
 ): List<LexicalItemDetail> {
-    var result = mutableListOf<LexicalItemDetail>()
+    val src = DataSource.KAIKKI
+    val result = mutableListOf<LexicalItemDetail>()
 
     if (forms.isNotEmpty()) {
         result += LexicalItemDetail.Forms(
             LexicalItemDetail.Forms.Value.Detailed(
                 forms.map { it.toDomain(langFrom) }
             ),
-            DataSource.KAIKKI,
+            src,
         )
     }
     if (senses.isNotEmpty()) {
         for (sense in senses) {
             for (gloss in sense.glosses) {
-                result += Explanation(gloss, DataSource.KAIKKI)
+                result += Explanation(gloss, src)
             }
             for (example in sense.examples) {
                 result += LexicalItemDetail.Example(
                     TranslationsSet(
-                        original = Sentence(example.text, langTo, DataSource.KAIKKI),
+                        original = Sentence(example.text, langTo, src),
                         translations = emptyList(),
                         translationsQualities = emptyList(),
                     ),
-                    DataSource.KAIKKI,
+                    src,
                 )
             }
         }
+    }
+    val translations = translations.filter { it.langCode == langTo.iso2 }
+    if (translations.isNotEmpty()) {
+        result += LexicalItemDetail.WordTranslations(
+            TranslationsSet(
+                original = Sentence(word, langFrom, src),
+                translations = translations.map { Sentence(it.word, langTo, src) },
+                translationsQualities = translations.map { QUALITY_MAX },
+            ),
+            src,
+        )
+    }
+    val synonyms = synonyms + coordinateTerms
+    if (synonyms.isNotEmpty()) {
+        result += LexicalItemDetail.Synonyms(
+            TranslationsSet(
+                original = Sentence(word, langFrom, src),
+                translations = synonyms.map { Sentence(it.word, langFrom, src) },
+                translationsQualities = synonyms.map { QUALITY_MAX },
+            ),
+            src,
+        )
     }
     return result
 }

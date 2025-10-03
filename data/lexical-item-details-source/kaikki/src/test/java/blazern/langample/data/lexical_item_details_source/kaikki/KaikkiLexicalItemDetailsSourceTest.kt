@@ -8,7 +8,9 @@ import blazern.langample.data.kaikki.model.Entry
 import blazern.langample.data.kaikki.model.Example
 import blazern.langample.data.kaikki.model.Form
 import blazern.langample.data.kaikki.model.FormOf
+import blazern.langample.data.kaikki.model.Related
 import blazern.langample.data.kaikki.model.Sense
+import blazern.langample.data.kaikki.model.Translation
 import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.langample.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.langample.domain.error.Err
@@ -18,6 +20,7 @@ import blazern.langample.domain.model.LexicalItemDetail
 import blazern.langample.domain.model.LexicalItemDetail.Forms
 import blazern.langample.domain.model.Sentence
 import blazern.langample.domain.model.TranslationsSet
+import blazern.langample.domain.model.TranslationsSet.Companion.QUALITY_MAX
 import blazern.langample.domain.model.WordForm
 import blazern.langample.domain.model.WordForm.Tag.Defined.Plural
 import blazern.langample.domain.model.WordForm.Tag.Defined.Singular
@@ -56,7 +59,19 @@ class KaikkiLexicalItemDetailsSourceTest {
         forms = listOf(
             Form("das Haus", tags = listOf("singular")),
             Form("Häuser", tags = listOf("plural")),
-        )
+        ),
+        translations = listOf(
+            Translation(word = "house", langCode = Lang.EN.iso2),
+            Translation(word = "дом", langCode = Lang.RU.iso2),
+        ),
+        synonyms = listOf(
+            Related("Gebäude"),
+            Related("Hütte"),
+        ),
+        coordinateTerms = listOf(
+            Related("Hochhaus"),
+            Related("Einfamilienhaus"),
+        ),
     )
 
     @Test
@@ -73,7 +88,7 @@ class KaikkiLexicalItemDetailsSourceTest {
     }
 
     @Test
-    fun `parses forms glosses and examples correctly`() = runBlocking {
+    fun `parses all expected fields`() = runBlocking {
         coEvery { kaikkiClient.search("Haus", Lang.DE) } returns Right(listOf(entry))
 
         val results = source.request("Haus", Lang.DE, Lang.EN)
@@ -96,8 +111,34 @@ class KaikkiLexicalItemDetailsSourceTest {
                     translations = emptyList(),
                     translationsQualities = emptyList(),
                 ),
-                DataSource.KAIKKI
-            )
+                DataSource.KAIKKI,
+            ),
+            LexicalItemDetail.WordTranslations(
+                TranslationsSet(
+                    original = Sentence("Haus", Lang.DE, DataSource.KAIKKI),
+                    translations = listOf(Sentence("house", Lang.EN, DataSource.KAIKKI)),
+                    translationsQualities = listOf(QUALITY_MAX),
+                ),
+                DataSource.KAIKKI,
+            ),
+            LexicalItemDetail.Synonyms(
+                TranslationsSet(
+                    original = Sentence("Haus", Lang.DE, DataSource.KAIKKI),
+                    translations = listOf(
+                        Sentence("Gebäude", Lang.DE, DataSource.KAIKKI),
+                        Sentence("Hütte", Lang.DE, DataSource.KAIKKI),
+                        Sentence("Hochhaus", Lang.DE, DataSource.KAIKKI),
+                        Sentence("Einfamilienhaus", Lang.DE, DataSource.KAIKKI),
+                    ),
+                    translationsQualities = listOf(
+                        QUALITY_MAX,
+                        QUALITY_MAX,
+                        QUALITY_MAX,
+                        QUALITY_MAX,
+                    ),
+                ),
+                DataSource.KAIKKI,
+            ),
         )
 
         assertEquals(expected, results)
