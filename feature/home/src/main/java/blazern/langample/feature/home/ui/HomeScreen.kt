@@ -82,6 +82,7 @@ internal fun HomeScreen(
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = { onSearchWrapper(state.query) },
+                enabled = state.canSearch,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(RL.string.home_btn_search))
@@ -129,6 +130,7 @@ fun Preview() {
         langFrom = Lang.DE,
         langTo = Lang.EN,
         query = "Hund",
+        canSearch = true,
     )
     LangampleTheme {
         HomeScreen(

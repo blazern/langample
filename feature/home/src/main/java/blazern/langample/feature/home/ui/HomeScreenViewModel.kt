@@ -20,6 +20,7 @@ internal class HomeScreenViewModel(
         langFrom = null,
         langTo = null,
         query = query,
+        canSearch = canSearch(query),
     ))
     val state: StateFlow<HomeScreenState> = _state
 
@@ -34,7 +35,10 @@ internal class HomeScreenViewModel(
     }
 
     fun onQueryChange(value: String) {
-        _state.value = state.value.copy(query = value)
+        _state.value = state.value.copy(
+            query = value,
+            canSearch = canSearch(value),
+        )
     }
 
     fun onLangsChange(langFrom: Lang, langTo: Lang) {
@@ -49,5 +53,9 @@ internal class HomeScreenViewModel(
                 settings.setLangFrom(langFrom)
             }
         }
+    }
+
+    private fun canSearch(query: String): Boolean {
+        return 2 <= query.trim().length
     }
 }
