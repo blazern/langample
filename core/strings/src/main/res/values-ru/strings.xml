@@ -9,7 +9,7 @@
     <string name="general_copied_to_clipboard">Скопировано</string>
 
     <string name="general_expand">Развернуть</string>
-    <string name="general_collapse">Сернуть</string>
+    <string name="general_collapse">Свернуть</string>
 
     <string name="general_data_source_tatoeba">Tatoeba</string>
     <string name="general_data_source_chatgpt">ChatGPT</string>
@@ -26,5 +26,5 @@
     <string name="general_lang_en">Английский</string>
     <string name="general_lang_de">Немецкий</string>
     <string name="general_lang_ru">Русский</string>
-    <string name="general_lang_fr">Французкий</string>
+    <string name="general_lang_fr">Французский</string>
 </resources>
