@@ -1,49 +1,97 @@
 package blazern.lexisoup
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.savedstate.read
+import io.ktor.http.encodeURLParameter
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-import lexisoup.composeapp.generated.resources.Res
-import lexisoup.composeapp.generated.resources.compose_multiplatform
+typealias Lang = String
+val String.iso3: String
+    get() = this
 
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+    val navController = rememberNavController()
+
+    NavHost(navController, startDestination = ROUTE_HOME) {
+        composable(ROUTE_HOME) {
+            HomeRoute(
+                onSearch = { query, langFrom, langTo ->
+                    navController.navigate(
+                        "$ROUTE_SEARCH_RESULTS?" +
+                                "$ARG_QUERY=${query.encodeURLParameter()}" +
+                                "&$ARG_LANG_FROM=${langFrom.iso3}" +
+                                "&$ARG_LANG_TO=${langTo.iso3}"
+                    )
                 }
-            }
+            )
         }
+
+        composable(
+            route = "$ROUTE_SEARCH_RESULTS?" +
+                    "$ARG_QUERY={$ARG_QUERY}" +
+                    "&$ARG_LANG_FROM={$ARG_LANG_FROM}" +
+                    "&$ARG_LANG_TO={$ARG_LANG_TO}",
+            arguments = listOf(
+                navArgument(ARG_QUERY) { type = NavType.StringType },
+                navArgument(ARG_LANG_FROM) { type = NavType.StringType },
+                navArgument(ARG_LANG_TO) { type = NavType.StringType },
+            )
+        ) { backStackEntry ->
+            val query = backStackEntry.arguments?.read { getStringOrNull(ARG_QUERY) }.orEmpty()
+            val langFrom = backStackEntry.arguments?.read { getStringOrNull(ARG_LANG_FROM) }.orEmpty()
+            val langTo   = backStackEntry.arguments?.read { getStringOrNull(ARG_LANG_TO) }.orEmpty()
+
+            SearchResultsRoute(query, langFrom, langTo)
+        }
+    }
+}
+
+private const val ROUTE_HOME = "home"
+private const val ROUTE_SEARCH_RESULTS = "search_results"
+
+private const val ARG_QUERY = "query"
+private const val ARG_LANG_FROM = "lang_from"
+private const val ARG_LANG_TO = "lang_to"
+
+
+typealias SearchFn = (query: String, langFrom: Lang, langTo: Lang)->Unit
+
+@Composable
+fun HomeRoute(onSearch: SearchFn) {
+    Column {
+        Text("Home")
+        Text("Home")
+        Text("Home")
+        Button(onClick = {
+            onSearch("Wow", "eng", "deu")
+        }) {
+            Text("Click me")
+        }
+    }
+}
+
+@Composable
+fun SearchResultsRoute(
+    query: String,
+    langFrom: Lang,
+    langTo: Lang,
+) {
+    Column {
+        Text("SearchResultsRoute $query $langFrom $langTo")
+        Text("SearchResultsRoute $query $langFrom $langTo")
+        Text("SearchResultsRoute $query $langFrom $langTo")
+        Text("SearchResultsRoute $query $langFrom $langTo")
+        Text("SearchResultsRoute $query $langFrom $langTo")
+        Text("SearchResultsRoute $query $langFrom $langTo")
     }
 }

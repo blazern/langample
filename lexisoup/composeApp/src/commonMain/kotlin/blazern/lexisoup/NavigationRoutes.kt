@@ -1,6 +1,5 @@
-package blazern.langample
+package blazern.lexisoup
 
-import blazern.langample.domain.model.Lang
 import kotlinx.serialization.Serializable
 
 interface NavigationRoute
@@ -11,6 +10,6 @@ data object Home : NavigationRoute
 @Serializable
 data class SearchResults(
     val query: String,
-    val langFrom: Lang,
-    val langTo: Lang,
+//    val langFrom: Lang,
+//    val langTo: Lang,
 ) : NavigationRoute
