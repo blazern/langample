@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_btn_search">Search</string>
+    <string name="home_input_hint">Search query</string>
+    <string name="home_cd_clear_search_query">Clear search query</string>
+    <string name="home_cd_switch_langs">Switch languages</string>
+
+    <string name="search_results_title">Search:</string>
+
+    <string name="general_copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="general_expand">Expand</string>
+    <string name="general_collapse">Collapse</string>
+
+    <string name="general_data_source_tatoeba">Tatoeba</string>
+    <string name="general_data_source_chatgpt">ChatGPT</string>
+    <string name="general_data_source_kaikki">kaikki (Wiktionary)</string>
+    <string name="general_data_source_panlex">PanLex</string>
+    <string name="general_data_source_wortschatz_leipzig">Wortschatz Leipzig</string>
+
+    <string name="general_lexical_item_detail_type_forms">Forms</string>
+    <string name="general_lexical_item_detail_type_word_translations">Translations</string>
+    <string name="general_lexical_item_detail_type_synonyms">Synonyms</string>
+    <string name="general_lexical_item_detail_type_explanation">Explanation</string>
+    <string name="general_lexical_item_detail_type_example">Example</string>
+
+    <string name="general_lang_en">English</string>
+    <string name="general_lang_de">German</string>
+    <string name="general_lang_ru">Russian</string>
+    <string name="general_lang_fr">French</string>
+</resources>

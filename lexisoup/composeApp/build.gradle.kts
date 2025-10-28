@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.implementation
+import org.gradle.kotlin.dsl.project
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -27,9 +28,7 @@ kotlin {
             isStatic = true
         }
     }
-    
-    jvm()
-    
+
     js {
         browser()
         binaries.executable()
@@ -54,6 +53,8 @@ kotlin {
 
             implementation(libs.jetpack.navigation.compose)
             implementation(libs.ktor.client.core)
+
+            implementation(project(":core:ui:strings"))
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -62,10 +63,6 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-        }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
         }
     }
 }

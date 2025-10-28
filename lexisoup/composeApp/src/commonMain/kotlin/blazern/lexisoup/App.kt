@@ -10,7 +10,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.savedstate.read
+import lexisoup.core.ui.strings.generated.resources.Res
 import io.ktor.http.encodeURLParameter
+import lexisoup.core.ui.strings.generated.resources.home_btn_search
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 typealias Lang = String
@@ -92,6 +95,6 @@ fun SearchResultsRoute(
         Text("SearchResultsRoute $query $langFrom $langTo")
         Text("SearchResultsRoute $query $langFrom $langTo")
         Text("SearchResultsRoute $query $langFrom $langTo")
-        Text("SearchResultsRoute $query $langFrom $langTo")
+        Text("SearchResultsRoute $query $langFrom $langTo ${stringResource(Res.string.home_btn_search)}")
     }
 }
