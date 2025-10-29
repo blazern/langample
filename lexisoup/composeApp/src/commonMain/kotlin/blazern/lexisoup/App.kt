@@ -10,15 +10,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.savedstate.read
+import blazern.lexisoup.domain.model.Lang
 import lexisoup.core.ui.strings.generated.resources.Res
 import io.ktor.http.encodeURLParameter
 import lexisoup.core.ui.strings.generated.resources.home_btn_search
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-typealias Lang = String
-val String.iso3: String
-    get() = this
 
 @Composable
 @Preview
@@ -52,9 +49,13 @@ fun App() {
         ) { backStackEntry ->
             val query = backStackEntry.arguments?.read { getStringOrNull(ARG_QUERY) }.orEmpty()
             val langFrom = backStackEntry.arguments?.read { getStringOrNull(ARG_LANG_FROM) }.orEmpty()
-            val langTo   = backStackEntry.arguments?.read { getStringOrNull(ARG_LANG_TO) }.orEmpty()
+            val langTo = backStackEntry.arguments?.read { getStringOrNull(ARG_LANG_TO) }.orEmpty()
 
-            SearchResultsRoute(query, langFrom, langTo)
+            SearchResultsRoute(
+                query,
+                Lang.fromIso3(langFrom) ?: Lang.EN,
+                Lang.fromIso3(langTo) ?: Lang.EN,
+            )
         }
     }
 }
@@ -76,7 +77,7 @@ fun HomeRoute(onSearch: SearchFn) {
         Text("Home")
         Text("Home")
         Button(onClick = {
-            onSearch("Wow", "eng", "deu")
+            onSearch("Wow", Lang.EN, Lang.DE)
         }) {
             Text("Click me")
         }

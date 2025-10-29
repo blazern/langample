@@ -55,6 +55,7 @@ kotlin {
             implementation(libs.ktor.client.core)
 
             implementation(project(":core:ui:strings"))
+            implementation(project(":domain:model"))
         }
         androidMain.dependencies {
             implementation(compose.preview)

@@ -34,4 +34,4 @@ plugins {
 
 include(":composeApp")
 include(":core:ui:strings")
- 
+include(":domain:model")
