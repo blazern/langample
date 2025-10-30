@@ -53,11 +53,6 @@ open class CorePlugin : Plugin<Project> {
             iosArm64()
             iosSimulatorArm64()
 
-            js {
-                browser()
-                binaries.library()
-            }
-
             @Suppress("OPT_IN_USAGE")
             wasmJs {
                 browser()

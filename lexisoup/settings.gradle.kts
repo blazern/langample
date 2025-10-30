@@ -38,5 +38,7 @@ include(":composeApp")
 include(":a-template-kmp-common")
 
 include(":core:ui:strings")
+include(":core:ui:theme")
+include(":core:ui:components")
 include(":core:utils")
 include(":domain:model")

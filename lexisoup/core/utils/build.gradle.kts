@@ -4,6 +4,6 @@ plugins {
 
 kotlin {
     androidLibrary {
-        namespace = "blazern.lexisoup.a.template.kmp.common"
+        namespace = "blazern.lexisoup.core.utils"
     }
 }
