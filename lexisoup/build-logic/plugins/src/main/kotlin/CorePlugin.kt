@@ -40,8 +40,8 @@ open class CorePlugin : Plugin<Project> {
         extensions.configure<KotlinMultiplatformExtension> {
             @Suppress("UnstableApiUsage")
             androidLibrary {
-                compileSdk = 36
-                minSdk = 24
+                compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
+                minSdk = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
 
                 withHostTestBuilder {
                 }
@@ -68,7 +68,6 @@ open class CorePlugin : Plugin<Project> {
                 val commonMain = getByName("commonMain")
                 val commonTest = getByName("commonTest")
                 val androidMain = maybeCreate("androidMain")
-                val androidDeviceTest = maybeCreate("androidDeviceTest")
 
                 commonMain.dependencies {
                     implementation(libs.findLibrary("kotlin-stdlib").get())
@@ -80,17 +79,13 @@ open class CorePlugin : Plugin<Project> {
                 }
                 commonTest.dependencies {
                     implementation(libs.findLibrary("kotlin-test").get())
+                    implementation(libs.findLibrary("kotlinx-coroutines-test").get())
                 }
 
                 androidMain.dependencies {
                     // lightweight Android-only defaults
                     // TODO: return
 //                    libs.findLibrary("koin-android").ifPresent { add("implementation", it) }
-                }
-                androidDeviceTest.dependencies {
-                    implementation(libs.findLibrary("androidx-runner").get())
-                    implementation(libs.findLibrary("androidx-core").get())
-                    implementation(libs.findLibrary("androidx-testExt-junit").get())
                 }
             }
         }

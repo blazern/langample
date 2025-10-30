@@ -54,6 +54,7 @@ kotlin {
             implementation(libs.jetpack.navigation.compose)
             implementation(libs.ktor.client.core)
 
+            implementation(project(":a-template-kmp-common"))
             implementation(project(":core:ui:strings"))
             implementation(project(":domain:model"))
         }

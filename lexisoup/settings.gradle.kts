@@ -34,5 +34,9 @@ plugins {
 }
 
 include(":composeApp")
+
+include(":a-template-kmp-common")
+
 include(":core:ui:strings")
+include(":core:utils")
 include(":domain:model")

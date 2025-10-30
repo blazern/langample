@@ -21,6 +21,8 @@ open class LibraryPlugin : CorePlugin() {
                 val commonMain = getByName("commonMain")
                 commonMain.dependencies {
                     // TODO: insert logging
+                    implementation(libs.findLibrary("arrow-core").get())
+
                     implementation(libs.findLibrary("compose-runtime").get())
                     implementation(libs.findLibrary("compose-foundation").get())
                     implementation(libs.findLibrary("compose-ui").get())
