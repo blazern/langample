@@ -1,7 +1,6 @@
 package blazern.lexisoup.domain.model
 
-// TODO: return
-//import blazern.langample.core.logging.Log
+import blazern.lexisoup.core.logging.Log
 
 @ConsistentCopyVisibility
 data class TranslationsSet private constructor(
@@ -22,8 +21,7 @@ data class TranslationsSet private constructor(
             translationsQualities: List<Int>
         ): TranslationsSet {
             if (translationsQualities.size != translations.size) {
-                // TODO: return
-//                Log.e(TAG) { "Sizes do not match: $translationsQualities $translations" }
+                Log.e(TAG) { "Sizes do not match: $translationsQualities $translations" }
             }
 
             val qualities = when {

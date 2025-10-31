@@ -41,4 +41,8 @@ include(":core:ui:strings")
 include(":core:ui:theme")
 include(":core:ui:components")
 include(":core:utils")
+include(":core:logging")
 include(":domain:model")
+include(":domain:settings")
+include(":feature:home")
+ 

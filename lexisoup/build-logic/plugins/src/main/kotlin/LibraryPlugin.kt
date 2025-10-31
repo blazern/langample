@@ -20,8 +20,9 @@ open class LibraryPlugin : CorePlugin() {
             sourceSets.apply {
                 val commonMain = getByName("commonMain")
                 commonMain.dependencies {
-                    // TODO: insert logging
                     implementation(libs.findLibrary("arrow-core").get())
+                    implementation(libs.findLibrary("koin-core").get())
+                    implementation(libs.findLibrary("koin-compose-viewmodel").get())
 
                     implementation(libs.findLibrary("compose-runtime").get())
                     implementation(libs.findLibrary("compose-foundation").get())
@@ -29,6 +30,8 @@ open class LibraryPlugin : CorePlugin() {
                     implementation(libs.findLibrary("compose-material3").get())
                     implementation(libs.findLibrary("compose-components-resources").get())
                     implementation(libs.findLibrary("compose-components-uiToolingPreview").get())
+
+                    implementation(project(":core:logging"))
                 }
             }
         }

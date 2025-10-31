@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -27,8 +26,7 @@ kotlin {
         }
     }
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
+    js {
         browser()
         binaries.executable()
     }
@@ -46,10 +44,15 @@ kotlin {
 
             implementation(libs.jetpack.navigation.compose)
             implementation(libs.ktor.client.core)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose.viewmodel)
 
             implementation(project(":a-template-kmp-common"))
             implementation(project(":core:ui:strings"))
             implementation(project(":domain:model"))
+            implementation(project(":domain:settings"))
+
+            implementation(project(":feature:home"))
         }
         androidMain.dependencies {
             implementation(compose.preview)

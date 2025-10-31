@@ -10,6 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import blazern.lexisoup.core.ui.theme.LangampleTheme
+import lexisoup.core.ui.components.generated.resources.Res
+import lexisoup.core.ui.components.generated.resources.search
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -20,7 +23,12 @@ fun SearchBar(
     onSearch: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: @Composable () -> Unit = { Text("") },
-    leadingIcon: @Composable (() -> Unit)? = { Icon(IconSearch, contentDescription = "") },
+    leadingIcon: @Composable (() -> Unit)? = {
+        Icon(
+            painterResource(Res.drawable.search),
+            contentDescription = "",
+        )
+    },
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     SearchBar(

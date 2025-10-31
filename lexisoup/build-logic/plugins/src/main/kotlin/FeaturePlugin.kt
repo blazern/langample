@@ -25,13 +25,14 @@ class FeaturePlugin : LibraryPlugin() {
                     implementation(libs.findLibrary("compose-ui-graphics").get())
 
                     // For compose previews
-                    implementation(libs.findLibrary("androidx-ui-tooling").get())
                     implementation(libs.findLibrary("androidx-emoji").get())
                     implementation(libs.findLibrary("androidx-customview-poolingcontainer").get())
                 }
 
                 androidMain.dependencies {
                     implementation(libs.findLibrary("androidx-activity-compose").get())
+                    // For compose previews
+                    implementation(libs.findLibrary("androidx-ui-tooling").get())
                 }
             }
         }

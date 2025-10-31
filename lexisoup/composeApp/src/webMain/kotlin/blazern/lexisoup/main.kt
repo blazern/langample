@@ -5,7 +5,8 @@ import androidx.compose.ui.window.ComposeViewport
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+    initKoin()
     ComposeViewport {
-        App()
+        MainNavigation()
     }
 }
