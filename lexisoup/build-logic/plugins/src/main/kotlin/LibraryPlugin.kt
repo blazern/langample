@@ -13,7 +13,6 @@ open class LibraryPlugin : CorePlugin() {
         with(pluginManager) {
             apply(libs.findPlugin("composeMultiplatform").get().get().pluginId)
             apply(libs.findPlugin("composeCompiler").get().get().pluginId)
-            apply(libs.findPlugin("composeHotReload").get().get().pluginId)
         }
 
         extensions.configure<KotlinMultiplatformExtension> {

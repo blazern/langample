@@ -12,10 +12,8 @@ import androidx.savedstate.read
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.HomeRoute
 import io.ktor.http.encodeURLParameter
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-@Preview
 fun MainNavigation() {
     val navController = rememberNavController()
 

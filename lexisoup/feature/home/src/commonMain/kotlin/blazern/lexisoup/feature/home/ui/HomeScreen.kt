@@ -22,20 +22,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import blazern.lexisoup.core.ui.components.SearchBar
+import blazern.lexisoup.core.ui.strings.stringResource
 import blazern.lexisoup.core.ui.theme.LangampleTheme
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.SearchFn
 import blazern.lexisoup.feature.home.model.HomeScreenState
-import lexisoup.core.ui.strings.generated.resources.Res as ResStr
 import lexisoup.core.ui.strings.generated.resources.home_btn_search
 import lexisoup.core.ui.strings.generated.resources.home_cd_clear_search_query
 import lexisoup.core.ui.strings.generated.resources.home_cd_switch_langs
 import lexisoup.core.ui.strings.generated.resources.home_input_hint
-import lexisoup.feature.home.generated.resources.Res
-import lexisoup.feature.home.generated.resources.langs_switch
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import lexisoup.core.ui.strings.generated.resources.Res as ResStr
 
 @Composable
 internal fun HomeScreen(
@@ -112,7 +109,7 @@ private fun LangsSelector(
             onLangsChange(langTo, langFrom)
         }) {
             Icon(
-                painterResource(Res.drawable.langs_switch),
+                IconSwitch,
                 contentDescription = stringResource(ResStr.string.home_cd_switch_langs),
             )
         }
@@ -127,7 +124,7 @@ private fun LangsSelector(
 
 @Preview(name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
-fun Preview() {
+private fun Preview() {
     val state = HomeScreenState(
         langFrom = Lang.DE,
         langTo = Lang.EN,
