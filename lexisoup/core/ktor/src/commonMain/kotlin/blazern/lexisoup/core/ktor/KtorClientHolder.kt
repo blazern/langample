@@ -2,6 +2,8 @@ package blazern.lexisoup.core.ktor
 
 import blazern.lexisoup.core.logging.Log
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
@@ -11,13 +13,13 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class KtorClientHolder() {
+class KtorClientHolder(engine: HttpClientEngine? = null) {
     private val jsonConfig = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
     }
 
-    val client = HttpClient() {
+    val client = createHttpClient(engine) {
         install(ContentNegotiation) {
             json(jsonConfig)
             json(
@@ -38,5 +40,16 @@ class KtorClientHolder() {
             }
             level = LogLevel.ALL
         }
+    }
+}
+
+private fun createHttpClient(
+    engine: HttpClientEngine?,
+    block: HttpClientConfig<*>.() -> Unit,
+): HttpClient {
+    return if (engine != null) {
+        HttpClient(engine, block)
+    } else {
+        HttpClient(block)
     }
 }

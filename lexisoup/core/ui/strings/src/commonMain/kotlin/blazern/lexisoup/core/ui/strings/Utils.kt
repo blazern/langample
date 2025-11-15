@@ -14,7 +14,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun stringResource(
     resource: StringResource,
-    default: String = "Lorem ipsum",
+    preview: String = "Lorem ipsum",
 ): String {
     if (!LocalInspectionMode.current) {
         return stringResource(resource)
@@ -22,7 +22,7 @@ fun stringResource(
 
     var text by remember(resource) { mutableStateOf<String?>(null) }
     LaunchedEffect(resource) {
-        text = try { getString(resource) } catch (_: Throwable) { default }
+        text = try { getString(resource) } catch (_: Throwable) { preview }
     }
-    return text ?: default
+    return text ?: preview
 }

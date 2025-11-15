@@ -3,6 +3,7 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import kotlin.jvm.kotlin
 
 open class LibraryPlugin : CorePlugin() {
     override fun apply(target: Project) = with(target) {
@@ -17,7 +18,6 @@ open class LibraryPlugin : CorePlugin() {
 
         extensions.configure<KotlinMultiplatformExtension> {
             sourceSets.apply {
-                val commonMain = getByName("commonMain")
                 commonMain.dependencies {
                     implementation(libs.findLibrary("arrow-core").get())
                     implementation(libs.findLibrary("koin-core").get())

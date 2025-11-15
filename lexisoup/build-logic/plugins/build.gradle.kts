@@ -20,8 +20,6 @@ dependencies {
     compileOnly(libs.detekt.gradle.plugin)
 
     implementation(gradleKotlinDsl())
-    // TODO: remove?
-//    testImplementation(libs.junit)
 }
 
 gradlePlugin {

@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import androidx.savedstate.read
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.HomeRoute
+import blazern.lexisoup.feature.search_results.SearchResultsRoute
 import io.ktor.http.encodeURLParameter
 
 @Composable
@@ -61,19 +62,3 @@ private const val ROUTE_SEARCH_RESULTS = "search_results"
 private const val ARG_QUERY = "query"
 private const val ARG_LANG_FROM = "lang_from"
 private const val ARG_LANG_TO = "lang_to"
-
-@Composable
-fun SearchResultsRoute(
-    query: String,
-    langFrom: Lang,
-    langTo: Lang,
-) {
-    Column {
-        Text("SearchResultsRoute $query $langFrom $langTo")
-        Text("SearchResultsRoute $query $langFrom $langTo")
-        Text("SearchResultsRoute $query $langFrom $langTo")
-        Text("SearchResultsRoute $query $langFrom $langTo")
-        Text("SearchResultsRoute $query $langFrom $langTo")
-//        Text("SearchResultsRoute $query $langFrom $langTo ${stringResource(Res.string.home_btn_search)}")
-    }
-}

@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.testImplementation
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -51,8 +52,10 @@ kotlin {
             implementation(project(":core:ktor"))
             implementation(project(":domain:model"))
             implementation(project(":domain:settings"))
+            implementation(project(":data:lexical-item-details-source:aggregation"))
 
             implementation(project(":feature:home"))
+            implementation(project(":feature:search-results"))
         }
         androidMain.dependencies {
             implementation(compose.preview)
