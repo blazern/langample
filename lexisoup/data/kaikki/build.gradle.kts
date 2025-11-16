@@ -17,6 +17,7 @@ kotlin {
 
                 api(project(":domain:model"))
                 implementation(project(":core:ktor"))
+                implementation(project(":core:utils"))
             }
         }
     }

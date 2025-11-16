@@ -5,6 +5,8 @@ import blazern.lexisoup.core.ktor.KtorClientHolder
 import blazern.lexisoup.data.kaikki.model.Entry
 import blazern.lexisoup.domain.error.Err
 import blazern.lexisoup.domain.model.Lang
+import blazern.lexisoup.utils.KotlinPlatform
+import blazern.lexisoup.utils.getKotlinPlatform
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
@@ -27,19 +29,16 @@ internal class KaikkiClientImpl(
         query: String,
         langFrom: Lang,
     ): Either<Err, List<Entry>> {
-        val queryToUrl = { query: String ->
-            "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
-        }
         return withContext(cpuDispatcher) {
             try {
-                var result = ktorClientHolder.client.get(queryToUrl(query))
+                var result = ktorClientHolder.client.get(getUrl(query, langFrom))
                 if (result.status == HttpStatusCode.NotFound) {
                     val updatedQuery = if (query.firstOrNull()?.isUpperCase() == true) {
                         query.replaceFirstChar { it.lowercase() }
                     } else {
                         query.replaceFirstChar { it.uppercase() }
                     }
-                    result = ktorClientHolder.client.get(queryToUrl(updatedQuery))
+                    result = ktorClientHolder.client.get(getUrl(updatedQuery, langFrom))
                 }
                 if (result.status == HttpStatusCode.NotFound) {
                     return@withContext Either.Right(emptyList())
@@ -55,6 +54,16 @@ internal class KaikkiClientImpl(
                 Either.Left(Err.from(e))
             }
         }
+    }
+}
+
+private fun getUrl(
+    query: String,
+    langFrom: Lang,
+): String {
+    return when (getKotlinPlatform()) {
+        KotlinPlatform.JS -> "https://blazern.me/langample/kaikki/?lang_iso3=${langFrom.iso3}&query=${query}"
+        else -> "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
     }
 }
 
