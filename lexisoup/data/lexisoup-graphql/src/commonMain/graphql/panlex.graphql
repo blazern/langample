@@ -1,0 +1,17 @@
+query LexicalItemsFromPanLexQuery(
+  $query: String!,
+  $langFromIso3: String!,
+  $langToIso3: String!
+) {
+  panlex(query: $query, langFromIso3: $langFromIso3, langToIso3: $langToIso3) {
+    __typename
+    ... on WordTranslations {
+      source
+      translationsSet { ...TranslationsSetFields }
+    }
+    ... on Synonyms {
+      source
+      translationsSet { ...TranslationsSetFields }
+    }
+  }
+}

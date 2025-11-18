@@ -7,12 +7,14 @@ import blazern.lexisoup.data.lexical_item_details_source.kaikki.KaikkiLexicalIte
 import blazern.lexisoup.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSourceImpl
 import blazern.lexisoup.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.lexisoup.data.lexical_item_details_source.utils.examples_tools.di.examplesToolsModule
+import blazern.lexisoup.data.lexisoup.graphql.di.lexisoupGraphQLModule
+import blazern.lexisoup.model.lexical_item_details_source.chatgpt.ChatGPTLexicalItemDetailsSource
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun aggregatingLexicalItemDetailsSourceModules() = listOf(
 //    tatoebaModule(),
-//    lexisoupGraphQLModule(),
+    lexisoupGraphQLModule(),
     kaikkiModule(),
     examplesToolsModule(),
     module {
@@ -25,12 +27,12 @@ fun aggregatingLexicalItemDetailsSourceModules() = listOf(
 //            )
 //        }.bind(LexicalItemDetailsSource::class)
 
-//        single {
-//            ChatGPTLexicalItemDetailsSource(
-//                apolloClientHolder = get(),
-//                cacher = get(),
-//            )
-//        }.bind(LexicalItemDetailsSource::class)
+        single {
+            ChatGPTLexicalItemDetailsSource(
+                apolloClientHolder = get(),
+                cacher = get(),
+            )
+        }.bind(LexicalItemDetailsSource::class)
 
         single<KaikkiLexicalItemDetailsSource> {
             KaikkiLexicalItemDetailsSourceImpl(

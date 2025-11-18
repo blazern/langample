@@ -11,7 +11,9 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":domain:model"))
             implementation(project(":data:kaikki"))
+            implementation(project(":data:lexisoup-graphql"))
             implementation(project(":data:lexical-item-details-source:api"))
+            implementation(project(":data:lexical-item-details-source:chatgpt"))
             implementation(project(":data:lexical-item-details-source:kaikki"))
             implementation(project(":data:lexical-item-details-source:utils:cache"))
             implementation(project(":data:lexical-item-details-source:utils:examples-tools"))
