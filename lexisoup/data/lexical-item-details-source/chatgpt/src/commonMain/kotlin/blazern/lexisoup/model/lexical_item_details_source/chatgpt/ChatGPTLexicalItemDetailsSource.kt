@@ -4,9 +4,9 @@ import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
 import arrow.core.getOrElse
-import blazern.langample.graphql.model.LexicalItemsFromLLMQuery
-import blazern.langample.graphql.model.fragment.SentenceFields
-import blazern.langample.graphql.model.fragment.TranslationsSetFields
+import blazern.lexisoup.graphql.model.LexicalItemsFromLLMQuery
+import blazern.lexisoup.graphql.model.fragment.SentenceFields
+import blazern.lexisoup.graphql.model.fragment.TranslationsSetFields
 import blazern.lexisoup.data.lexisoup.graphql.LexisoupApolloClientHolder
 import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item

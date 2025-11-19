@@ -21,11 +21,7 @@ kotlin {
 }
 
 apollo {
-    service("langample") {
-        packageName.set("blazern.langample.graphql.model")
-        introspection {
-            endpointUrl.set("https://blazern.me/langample/graphql")
-            schemaFile.set(file("src/commonMain/graphql/schema.graphqls"))
-        }
+    service("lexisoup") {
+        packageName.set("blazern.lexisoup.graphql.model")
     }
 }

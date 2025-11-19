@@ -1,6 +1,6 @@
 package blazern.lexisoup.model.lexical_item_details_source.chatgpt
 
-import blazern.langample.graphql.model.LexicalItemsFromLLMQuery
+import blazern.lexisoup.graphql.model.LexicalItemsFromLLMQuery
 import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.lexisoup.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.lexisoup.data.lexisoup.graphql.LexisoupApolloClientHolder
