@@ -35,8 +35,15 @@ class SettingsRepository(
         settings.getStringFlow(KEY_LANG_TO, Lang.DE.iso3)
             .map { Lang.fromIso3(it) ?: Lang.DE }
 
+    suspend fun setBackendBaseUrl(baseUrl: String) =
+        settings.putString(KEY_BACKEND_BASE_URL, baseUrl)
+
+    fun getBackendBaseUrl(defaultValue: String): Flow<String> =
+        settings.getStringFlow(KEY_BACKEND_BASE_URL, defaultValue)
+
     private companion object {
         const val KEY_LANG_FROM = "lang_from"
         const val KEY_LANG_TO = "lang_to"
+        const val KEY_BACKEND_BASE_URL = "backend_base_url"
     }
 }

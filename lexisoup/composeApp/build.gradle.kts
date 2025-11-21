@@ -50,6 +50,7 @@ kotlin {
             implementation(project(":a-template-kmp-common"))
             implementation(project(":core:ui:strings"))
             implementation(project(":core:ktor"))
+            implementation(project(":domain:backend-address"))
             implementation(project(":domain:model"))
             implementation(project(":domain:settings"))
             implementation(project(":data:lexical-item-details-source:aggregation"))

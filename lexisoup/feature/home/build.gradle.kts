@@ -9,11 +9,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":domain:backend-address"))
             implementation(project(":domain:model"))
             implementation(project(":domain:settings"))
             implementation(project(":core:ui:theme"))
             implementation(project(":core:ui:strings"))
             implementation(project(":core:ui:components"))
+            implementation(project(":core:utils"))
         }
     }
 }

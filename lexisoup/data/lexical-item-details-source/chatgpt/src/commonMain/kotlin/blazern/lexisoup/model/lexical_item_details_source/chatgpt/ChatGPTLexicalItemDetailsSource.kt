@@ -19,6 +19,7 @@ import blazern.lexisoup.domain.model.Sentence
 import blazern.lexisoup.domain.model.TranslationsSet
 import com.apollographql.apollo.ApolloClient
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.io.IOException
 
@@ -26,7 +27,7 @@ class ChatGPTLexicalItemDetailsSource(
     private val apolloClientHolder: LexisoupApolloClientHolder,
     private val cacher: LexicalItemDetailsSourceCacher,
 ) : LexicalItemDetailsSource {
-    private val apollo: ApolloClient
+    private val apollo: Flow<ApolloClient>
         get() = apolloClientHolder.client
 
     override val source = DataSource.CHATGPT
@@ -71,7 +72,7 @@ class ChatGPTLexicalItemDetailsSource(
         langFrom: Lang,
         langTo: Lang,
     ): Either<Exception, List<LexicalItemDetail>> {
-        val result = apollo.query(
+        val result = apollo.first().query(
             LexicalItemsFromLLMQuery(
                 query,
                 langFromIso3 = langFrom.iso3,

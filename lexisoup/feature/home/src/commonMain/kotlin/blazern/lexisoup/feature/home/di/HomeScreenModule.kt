@@ -9,6 +9,7 @@ fun homeScreenModule() = module {
         HomeScreenViewModel(
             query = query,
             settings = get(),
+            backendAddressProvider = get(),
         )
     }
 }

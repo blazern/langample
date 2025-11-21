@@ -8,6 +8,7 @@ fun kaikkiModule() = module {
     single<KaikkiClient> {
         KaikkiClientImpl(
             ktorClientHolder = get(),
+            backendAddressProvider = get(),
         )
     }
 }

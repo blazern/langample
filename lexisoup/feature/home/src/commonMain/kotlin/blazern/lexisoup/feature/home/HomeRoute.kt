@@ -23,5 +23,6 @@ fun HomeRoute(onSearch: SearchFn) {
         viewModel::onQueryChange,
         viewModel::onLangsChange,
         onSearch,
+        viewModel::onLocalhostToggled,
     )
 }

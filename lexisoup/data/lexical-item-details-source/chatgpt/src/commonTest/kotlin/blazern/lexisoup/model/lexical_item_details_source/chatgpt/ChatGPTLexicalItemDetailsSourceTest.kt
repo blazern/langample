@@ -24,6 +24,7 @@ import com.apollographql.apollo.network.NetworkTransport
 import com.benasher44.uuid.uuid4
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -38,7 +39,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
         .networkTransport(networkTransport)
         .build()
     private val holder = object : LexisoupApolloClientHolder {
-        override val client = apolloClient
+        override val client = flowOf(apolloClient)
     }
     private val source  = ChatGPTLexicalItemDetailsSource(
         holder,

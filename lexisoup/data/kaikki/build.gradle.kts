@@ -16,6 +16,7 @@ kotlin {
                 implementation(libs.ktor.client.core)
 
                 api(project(":domain:model"))
+                implementation(project(":domain:backend-address"))
                 implementation(project(":core:ktor"))
                 implementation(project(":core:utils"))
             }

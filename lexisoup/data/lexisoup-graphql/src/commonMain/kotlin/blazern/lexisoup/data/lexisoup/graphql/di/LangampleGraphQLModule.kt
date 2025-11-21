@@ -8,6 +8,7 @@ fun lexisoupGraphQLModule() = module {
     single<LexisoupApolloClientHolder> {
         LexisoupApolloClientHolderImpl(
             ktorClientHolder = get(),
+            backendAddressProvider = get(),
         )
     }
 }

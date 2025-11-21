@@ -3,6 +3,7 @@ package blazern.lexisoup.data.kaikki
 import arrow.core.Either
 import blazern.lexisoup.core.ktor.KtorClientHolder
 import blazern.lexisoup.data.kaikki.model.Entry
+import blazern.lexisoup.domain.backend_address.BackendAddressProvider
 import blazern.lexisoup.domain.error.Err
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.utils.KotlinPlatform
@@ -12,11 +13,13 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 internal class KaikkiClientImpl(
     private val ktorClientHolder: KtorClientHolder,
+    private val backendAddressProvider: BackendAddressProvider,
     private val cpuDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : KaikkiClient {
     private val json = Json {
@@ -55,15 +58,18 @@ internal class KaikkiClientImpl(
             }
         }
     }
-}
 
-private fun getUrl(
-    query: String,
-    langFrom: Lang,
-): String {
-    return when (getKotlinPlatform()) {
-        KotlinPlatform.JS -> "https://blazern.me/langample/kaikki/?lang_iso3=${langFrom.iso3}&query=${query}"
-        else -> "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
+    private suspend fun getUrl(
+        query: String,
+        langFrom: Lang,
+    ): String {
+        return when (getKotlinPlatform()) {
+            KotlinPlatform.JS -> {
+                val baseUrl = backendAddressProvider.baseUrl.first()
+                "$baseUrl/kaikki?lang_iso3=${langFrom.iso3}&query=${query}"
+            }
+            else -> "https://kaikki.org/" + subwiktionaryOf(langFrom) + "/meaning/" + wordPagePostfix(query)
+        }
     }
 }
 

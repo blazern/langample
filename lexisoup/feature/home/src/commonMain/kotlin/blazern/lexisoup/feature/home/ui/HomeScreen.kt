@@ -1,6 +1,7 @@
 package blazern.lexisoup.feature.home.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,52 +42,74 @@ internal fun HomeScreen(
     onQueryChange: (query: String)->Unit,
     onLangsChange: (langFrom: Lang, langTo: Lang)->Unit,
     onSearch: SearchFn,
+    onLocalhostToggled: (Boolean)->Unit,
 ) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(32.dp)
                 .fillMaxSize()
         ) {
-            if (state.langFrom != null && state.langTo != null) {
-                LangsSelector(state.langFrom, state.langTo, onLangsChange)
-            }
-            val onSearchWrapper = { query: String ->
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .padding(32.dp)
+                    .fillMaxSize()
+            ) {
                 if (state.langFrom != null && state.langTo != null) {
-                    onSearch(
-                        query.trim(),
-                        state.langFrom,
-                        state.langTo,
-                    )
+                    LangsSelector(state.langFrom, state.langTo, onLangsChange)
                 }
-            }
-            SearchBar(
-                state.query,
-                onQueryChange = { onQueryChange(it) },
-                onSearch = { onSearchWrapper(state.query) },
-                placeholder = { Text(stringResource(ResStr.string.home_input_hint)) },
-                trailingIcon = {
-                    IconButton(onClick = {
-                        onQueryChange("")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = stringResource(ResStr.string.home_cd_clear_search_query),
+                val onSearchWrapper = { query: String ->
+                    if (state.langFrom != null && state.langTo != null) {
+                        onSearch(
+                            query.trim(),
+                            state.langFrom,
+                            state.langTo,
                         )
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = { onSearchWrapper(state.query) },
-                enabled = state.canSearch,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(ResStr.string.home_btn_search))
+                }
+                SearchBar(
+                    state.query,
+                    onQueryChange = { onQueryChange(it) },
+                    onSearch = { onSearchWrapper(state.query) },
+                    placeholder = { Text(stringResource(ResStr.string.home_input_hint)) },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            onQueryChange("")
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = stringResource(ResStr.string.home_cd_clear_search_query),
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(16.dp))
+                Button(
+                    onClick = { onSearchWrapper(state.query) },
+                    enabled = state.canSearch,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(ResStr.string.home_btn_search))
+                }
+            }
+
+            if (state.isLocalhost != null) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(32.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Localhost")
+                    Spacer(Modifier.width(8.dp))
+                    Switch(
+                        checked = state.isLocalhost,
+                        onCheckedChange = { isChecked -> onLocalhostToggled(isChecked) }
+                    )
+                }
             }
         }
     }
@@ -130,13 +154,15 @@ private fun Preview() {
         langTo = Lang.EN,
         query = "Hund",
         canSearch = true,
+        isLocalhost = false,
     )
     LangampleTheme {
         HomeScreen(
-            state,
+            state = state,
             onQueryChange = {},
             onLangsChange = { _, _ -> },
             onSearch = { _, _, _ -> },
+            onLocalhostToggled = {}
         )
     }
 }

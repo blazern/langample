@@ -7,4 +7,5 @@ internal data class HomeScreenState(
     val langTo: Lang?,
     val query: String,
     val canSearch: Boolean,
+    val isLocalhost: Boolean?,
 )
