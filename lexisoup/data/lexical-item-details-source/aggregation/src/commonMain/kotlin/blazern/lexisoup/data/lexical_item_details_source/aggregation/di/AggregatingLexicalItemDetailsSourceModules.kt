@@ -5,6 +5,7 @@ import blazern.lexisoup.data.lexical_item_details_source.aggregation.LexicalItem
 import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSourceImpl
+import blazern.lexisoup.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.lexisoup.data.lexical_item_details_source.utils.examples_tools.di.examplesToolsModule
 import blazern.lexisoup.data.lexisoup.graphql.di.lexisoupGraphQLModule
@@ -41,12 +42,12 @@ fun aggregatingLexicalItemDetailsSourceModules() = listOf(
             )
         }.bind(LexicalItemDetailsSource::class)
 
-//        single {
-//            PanLexLexicalItemDetailsSource(
-//                apolloClientHolder = get(),
-//                cacher = get(),
-//            )
-//        }.bind(LexicalItemDetailsSource::class)
+        single {
+            PanLexLexicalItemDetailsSource(
+                apolloClientHolder = get(),
+                cacher = get(),
+            )
+        }.bind(LexicalItemDetailsSource::class)
 
 //        single {
 //            WortschatzLeipzigLexicalItemDetailsSource(

@@ -15,6 +15,7 @@ kotlin {
             implementation(project(":data:lexical-item-details-source:api"))
             implementation(project(":data:lexical-item-details-source:chatgpt"))
             implementation(project(":data:lexical-item-details-source:kaikki"))
+            implementation(project(":data:lexical-item-details-source:panlex"))
             implementation(project(":data:lexical-item-details-source:utils:cache"))
             implementation(project(":data:lexical-item-details-source:utils:examples-tools"))
         }

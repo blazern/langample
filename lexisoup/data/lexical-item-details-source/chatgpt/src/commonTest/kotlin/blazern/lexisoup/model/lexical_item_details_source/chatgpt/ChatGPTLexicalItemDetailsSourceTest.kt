@@ -1,9 +1,7 @@
 package blazern.lexisoup.model.lexical_item_details_source.chatgpt
 
-import blazern.lexisoup.graphql.model.LexicalItemsFromLLMQuery
 import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
 import blazern.lexisoup.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
-import blazern.lexisoup.data.lexisoup.graphql.LexisoupApolloClientHolder
 import blazern.lexisoup.domain.model.DataSource.CHATGPT
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.domain.model.LexicalItemDetail
@@ -11,20 +9,15 @@ import blazern.lexisoup.domain.model.LexicalItemDetail.Forms
 import blazern.lexisoup.domain.model.Sentence
 import blazern.lexisoup.domain.model.TranslationsSet
 import blazern.lexisoup.domain.model.TranslationsSet.Companion.QUALITY_MAX
+import blazern.lexisoup.graphql.model.LexicalItemsFromLLMQuery
+import blazern.lexisoup.test_utils.FakeApolloClientHolder
 import blazern.lexisoup.utils.FlowIterator
-import com.apollographql.apollo.ApolloClient
-import com.apollographql.apollo.api.ApolloRequest
 import com.apollographql.apollo.api.ApolloResponse
-import com.apollographql.apollo.api.Operation
 import com.apollographql.apollo.api.json.BufferedSourceJsonReader
 import com.apollographql.apollo.api.json.JsonReader
 import com.apollographql.apollo.api.parseResponse
 import com.apollographql.apollo.exception.DefaultApolloException
-import com.apollographql.apollo.network.NetworkTransport
 import com.benasher44.uuid.uuid4
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -34,15 +27,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ChatGPTLexicalItemDetailsSourceTest {
-    private val networkTransport = TestNetworkTransport()
-    private val apolloClient = ApolloClient.Builder()
-        .networkTransport(networkTransport)
-        .build()
-    private val holder = object : LexisoupApolloClientHolder {
-        override val client = flowOf(apolloClient)
-    }
+    private val apollo = FakeApolloClientHolder()
     private val source  = ChatGPTLexicalItemDetailsSource(
-        holder,
+        apollo,
         LexicalItemDetailsSourceCacher.NOOP,
     )
 
@@ -187,7 +174,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
 
     @Test
     fun `good scenario`() = runTest {
-        networkTransport.setResponses(successResponse())
+        apollo.setResponses(successResponse())
 
         val details = source.request("Hund", Lang.DE, Lang.EN)
             .take(20)
@@ -270,7 +257,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
 
     @Test
     fun `first IO error then good scenario`() = runTest {
-        networkTransport.setResponses(
+        apollo.setResponses(
             networkErrorResponse(),
             successResponse(),
         )
@@ -284,7 +271,7 @@ class ChatGPTLexicalItemDetailsSourceTest {
 
     @Test
     fun `graphql errors`() = runTest {
-        networkTransport.setResponses(
+        apollo.setResponses(
             graphqlErrorsResponse(),
         )
 
@@ -292,28 +279,5 @@ class ChatGPTLexicalItemDetailsSourceTest {
         val iter = FlowIterator(flow)
         assertTrue(iter.next() is Item.Failure)
         iter.close()
-    }
-}
-
-
-class TestNetworkTransport : NetworkTransport {
-    private val responses = mutableListOf<ApolloResponse<*>>()
-
-    fun setResponses(vararg responses: ApolloResponse<*>) {
-        this.responses.clear()
-        this.responses.addAll(responses.toMutableList())
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <D : Operation.Data> execute(
-        request: ApolloRequest<D>
-    ): Flow<ApolloResponse<D>> = flow {
-        val response = responses.removeFirstOrNull()
-            ?: error("No response configured in TestNetworkTransport for request: ${request.operation.name()}")
-        emit(response as ApolloResponse<D>)
-    }
-
-    override fun dispose() {
-        responses.clear()
     }
 }
