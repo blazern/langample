@@ -19,6 +19,7 @@ kotlin {
             implementation(project(":data:lexical-item-details-source:kaikki"))
             implementation(project(":data:lexical-item-details-source:panlex"))
             implementation(project(":data:lexical-item-details-source:tatoeba"))
+            implementation(project(":data:lexical-item-details-source:wortschatz-leipzig"))
             implementation(project(":data:lexical-item-details-source:utils:cache"))
             implementation(project(":data:lexical-item-details-source:utils:examples-tools"))
         }

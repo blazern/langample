@@ -9,6 +9,7 @@ import blazern.lexisoup.data.lexical_item_details_source.panlex.PanLexLexicalIte
 import blazern.lexisoup.data.lexical_item_details_source.tatoeba.TatoebaLexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.lexisoup.data.lexical_item_details_source.utils.examples_tools.di.examplesToolsModule
+import blazern.lexisoup.data.lexical_item_details_source.wortschatz_leipzig.WortschatzLeipzigLexicalItemDetailsSource
 import blazern.lexisoup.data.lexisoup.graphql.di.lexisoupGraphQLModule
 import blazern.lexisoup.model.lexical_item_details_source.chatgpt.ChatGPTLexicalItemDetailsSource
 import org.koin.dsl.bind
@@ -50,12 +51,13 @@ fun aggregatingLexicalItemDetailsSourceModules() = listOf(
             )
         }.bind(LexicalItemDetailsSource::class)
 
-//        single {
-//            WortschatzLeipzigLexicalItemDetailsSource(
-//                ktorClientHolder = get(),
-//                formsForExamplesProvider = get(),
-//            )
-//        }.bind(LexicalItemDetailsSource::class)
+        single {
+            WortschatzLeipzigLexicalItemDetailsSource(
+                backendAddressProvider = get(),
+                ktorClientHolder = get(),
+                formsForExamplesProvider = get(),
+            )
+        }.bind(LexicalItemDetailsSource::class)
 
         single {
             LexicalItemDetailsSourceAggregator(

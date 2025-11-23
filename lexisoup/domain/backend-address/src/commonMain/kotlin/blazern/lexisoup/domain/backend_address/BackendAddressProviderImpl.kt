@@ -4,7 +4,7 @@ import blazern.lexisoup.domain.settings.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class BackendAddressProviderImpl(
+internal class BackendAddressProviderImpl(
     private val settings: SettingsRepository,
 ) : BackendAddressProvider {
     override val baseUrl: Flow<String> = settings.getBackendBaseUrl(

@@ -1,26 +1,31 @@
-package blazern.langample.data.lexical_item_details_source.wortschatz_leipzig
+package blazern.lexisoup.data.lexical_item_details_source.wortschatz_leipzig
 
-import blazern.langample.core.ktor.KtorClientHolder
-import blazern.langample.core.logging.Log
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource
-import blazern.langample.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
-import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentence
-import blazern.langample.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentencesResponse
-import blazern.langample.domain.error.Err
-import blazern.langample.domain.model.DataSource
-import blazern.langample.domain.model.Lang
-import blazern.langample.domain.model.LexicalItemDetail
-import blazern.langample.domain.model.Sentence
-import blazern.langample.domain.model.TranslationsSet
-import blazern.langample.model.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
+import blazern.lexisoup.core.ktor.KtorClientHolder
+import blazern.lexisoup.core.logging.Log
+import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource
+import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsSource.Item
+import blazern.lexisoup.data.lexical_item_details_source.utils.examples_tools.FormsForExamplesProvider
+import blazern.lexisoup.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentence
+import blazern.lexisoup.data.lexical_item_details_source.wortschatz_leipzig.model.LeipzigSentencesResponse
+import blazern.lexisoup.domain.backend_address.BackendAddressProvider
+import blazern.lexisoup.domain.error.Err
+import blazern.lexisoup.domain.model.DataSource
+import blazern.lexisoup.domain.model.Lang
+import blazern.lexisoup.domain.model.LexicalItemDetail
+import blazern.lexisoup.domain.model.Sentence
+import blazern.lexisoup.domain.model.TranslationsSet
+import blazern.lexisoup.utils.KotlinPlatform
+import blazern.lexisoup.utils.getKotlinPlatform
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.http.encodeURLPathPart
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import java.net.URLEncoder
 
 class WortschatzLeipzigLexicalItemDetailsSource(
+    private val backendAddressProvider: BackendAddressProvider,
     private val ktorClientHolder: KtorClientHolder,
     private val formsForExamplesProvider: FormsForExamplesProvider,
 ) : LexicalItemDetailsSource {
@@ -50,7 +55,7 @@ class WortschatzLeipzigLexicalItemDetailsSource(
             { it.map { it.text } }
         )
 
-        val baseUrl = "https://api.wortschatz-leipzig.de/ws/sentences"
+        val baseUrl = getUrlBase()
         for (query in queries) {
             val encodedTerm = encodePathSegment(query)
             val seen = HashSet<String>()
@@ -106,13 +111,22 @@ class WortschatzLeipzigLexicalItemDetailsSource(
         source = this@WortschatzLeipzigLexicalItemDetailsSource.source,
     )
 
+    private suspend fun getUrlBase(): String {
+        return when (getKotlinPlatform()) {
+            KotlinPlatform.JS -> {
+                val base = backendAddressProvider.baseUrl.first()
+                "$base/ws/sentences"
+            }
+            else -> "https://api.wortschatz-leipzig.de/ws/sentences"
+        }
+    }
+
     private companion object {
         const val LIMIT = 10
     }
 }
 
-private fun encodePathSegment(value: String): String =
-    URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+private fun encodePathSegment(value: String): String = value.encodeURLPathPart()
 
 private fun textCorporaFor(lang: Lang): List<String> {
     // curl -X 'GET' \
