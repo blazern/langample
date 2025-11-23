@@ -6,6 +6,7 @@ import blazern.lexisoup.data.lexical_item_details_source.api.LexicalItemDetailsS
 import blazern.lexisoup.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.kaikki.KaikkiLexicalItemDetailsSourceImpl
 import blazern.lexisoup.data.lexical_item_details_source.panlex.PanLexLexicalItemDetailsSource
+import blazern.lexisoup.data.lexical_item_details_source.tatoeba.TatoebaLexicalItemDetailsSource
 import blazern.lexisoup.data.lexical_item_details_source.utils.cache.LexicalItemDetailsSourceCacher
 import blazern.lexisoup.data.lexical_item_details_source.utils.examples_tools.di.examplesToolsModule
 import blazern.lexisoup.data.lexisoup.graphql.di.lexisoupGraphQLModule
@@ -14,19 +15,19 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun aggregatingLexicalItemDetailsSourceModules() = listOf(
-//    tatoebaModule(),
     lexisoupGraphQLModule(),
     kaikkiModule(),
     examplesToolsModule(),
     module {
         single { LexicalItemDetailsSourceCacher() }
 
-//        single {
-//            TatoebaLexicalItemDetailsSource(
-//                tatoebaClient = get(),
-//                formsForExamplesProvider = get(),
-//            )
-//        }.bind(LexicalItemDetailsSource::class)
+        single {
+            TatoebaLexicalItemDetailsSource(
+                ktorClientHolder = get(),
+                backendAddressProvider = get(),
+                formsForExamplesProvider = get(),
+            )
+        }.bind(LexicalItemDetailsSource::class)
 
         single {
             ChatGPTLexicalItemDetailsSource(
