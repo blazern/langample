@@ -20,10 +20,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class FormsForExamplesProviderTest {
+class FormsForExamplesProviderImplTest {
     private val types = setOf(LexicalItemDetail.Type.FORMS)
     private val kaikki = FakeKaikkiLexicalItemDetailsSource()
-    private val formsProvider = FormsForExamplesProvider(kaikki)
+    private val formsProvider = FormsForExamplesProviderImpl(kaikki)
 
     @Test
     fun `uses and modifies Kaikki forms`() = runTest {

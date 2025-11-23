@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import blazern.lexisoup.core.ktor.KtorClientHolder
 import blazern.lexisoup.data.kaikki.model.Entry
+import blazern.lexisoup.domain.backend_address.BackendAddressProvider
 import blazern.lexisoup.domain.model.Lang
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -11,6 +12,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
@@ -18,7 +21,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class KaikkiClientTest {
+class KaikkiClientImplTest {
     private lateinit var response: ()->Either<Exception, Pair<HttpStatusCode, String>>
 
     private val mockEngine = MockEngine {
@@ -35,7 +38,7 @@ class KaikkiClientTest {
     }
 
     private val clientHolder = KtorClientHolder(mockEngine)
-    private val kaikki = KaikkiClient(clientHolder)
+    private val kaikki = KaikkiClientImpl(clientHolder, FakeBackendAddressProvider())
 
     @Test
     fun `search returns list of entries`() = runTest {
@@ -176,4 +179,11 @@ class KaikkiClientTest {
     private fun setResponse(exception: Exception) {
         response = { Either.Left(exception) }
     }
+}
+
+private class FakeBackendAddressProvider(
+    override val baseUrl: Flow<String> = flowOf("my.webserver.com"),
+    override val isLocalhost: Flow<Boolean> = flowOf(false),
+) : BackendAddressProvider {
+    override suspend fun setIsLocalhost(isLocalhost: Boolean) = throw NotImplementedError()
 }

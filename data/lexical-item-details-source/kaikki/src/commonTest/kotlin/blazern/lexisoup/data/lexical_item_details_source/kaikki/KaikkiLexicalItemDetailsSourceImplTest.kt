@@ -31,9 +31,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class KaikkiLexicalItemDetailsSourceTest {
+class KaikkiLexicalItemDetailsSourceImplTest {
     private val kaikkiClient = FakeKaikkiClient()
-    private val source: LexicalItemDetailsSource = KaikkiLexicalItemDetailsSource(
+    private val source: LexicalItemDetailsSource = KaikkiLexicalItemDetailsSourceImpl(
         kaikkiClient,
         LexicalItemDetailsSourceCacher.NOOP,
     )

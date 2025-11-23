@@ -8,12 +8,12 @@ import blazern.lexisoup.domain.model.WordForm
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class FormsAccentsEnhancerTest {
+class FormsAccentsEnhancerImplTest {
 
     private val source = DataSource.TATOEBA
 
     private fun enhancer(vararg forms: String) =
-        FormsAccentsEnhancer(forms.map { WordForm(it, emptyList(), Lang.DE) })
+        FormsAccentsEnhancerImpl(forms.map { WordForm(it, emptyList(), Lang.DE) })
 
     private fun sentence(
         text: String,
@@ -87,7 +87,7 @@ class FormsAccentsEnhancerTest {
 
     @Test
     fun `empty forms are ignored`() {
-        val e = FormsAccentsEnhancer(
+        val e = FormsAccentsEnhancerImpl(
             listOf(
                 WordForm("", emptyList(), Lang.DE),
                 WordForm("tanz", emptyList(), Lang.DE)
