@@ -1,7 +1,9 @@
 plugins {
-    id("blazern.langample.plugin.feature")
+    id("blazern.lexisoup.plugin.library")
 }
 
-android {
-    namespace = "blazern.langample.theme"
+kotlin {
+    androidLibrary {
+        namespace = "blazern.lexisoup.core.ui.theme"
+    }
 }

@@ -14,3 +14,14 @@ local.properties
 !/.idea/codeStyles/
 
 .kotlin
+
+**/build/
+xcuserdata
+!src/**/build/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+node_modules/

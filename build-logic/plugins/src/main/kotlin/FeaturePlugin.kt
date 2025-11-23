@@ -1,44 +1,38 @@
-import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.project
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 class FeaturePlugin : LibraryPlugin() {
-    override fun apply(target: Project) {
+    override fun apply(target: Project) = with(target) {
         super.apply(target)
 
-        with(target) {
-            with(pluginManager) {
-                apply("org.jetbrains.kotlin.plugin.compose")
-            }
+        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
-            extensions.configure(LibraryExtension::class.java) {
-                val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+        extensions.configure<KotlinMultiplatformExtension> {
+            sourceSets.apply {
+                val commonMain = getByName("commonMain")
+                val androidMain = maybeCreate("androidMain")
 
-                it.apply {
-                    buildFeatures {
-                        compose = true
-                    }
+                commonMain.dependencies {
+                    implementation(libs.findLibrary("androidx-appcompat").get())
+                    implementation(libs.findLibrary("androidx-core-ktx").get())
+                    implementation(project(":core:ui:strings"))
+
+                    // Draw icons
+                    implementation(libs.findLibrary("compose-material-icons-core").get())
+                    implementation(libs.findLibrary("compose-ui-graphics").get())
+
+                    // For compose previews
+                    implementation(libs.findLibrary("androidx-emoji").get())
+                    implementation(libs.findLibrary("androidx-customview-poolingcontainer").get())
                 }
 
-                dependencies {
-                    add("implementation", libs.findLibrary("androidx-appcompat").get())
-                    add("implementation", libs.findLibrary("material").get())
-                    add("implementation", libs.findLibrary("androidx-ui-tooling-preview").get())
-                    add("implementation", libs.findLibrary("androidx-material3").get())
-                    add("implementation", libs.findLibrary("androidx-material-icons").get())
-                    add("implementation", libs.findLibrary("koin-android").get())
-                    add("implementation", libs.findLibrary("koin-android-compose-viewmodel").get())
-                    add("implementation", libs.findLibrary("androidx-lifecycle-compose").get())
-
-                    add("implementation", project(":core:strings"))
-
-                    val composeBom = libs.findLibrary("androidx-compose-bom").get()
-                    add("implementation", platform(composeBom))
-
-                    add("debugImplementation", libs.findLibrary("androidx-ui-tooling").get())
+                androidMain.dependencies {
+                    implementation(libs.findLibrary("androidx-activity-compose").get())
+                    // For compose previews
+                    implementation(libs.findLibrary("androidx-ui-tooling").get())
                 }
             }
         }
