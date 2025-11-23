@@ -1,11 +1,15 @@
 plugins {
-    id("blazern.langample.plugin.library")
+    id("blazern.lexisoup.plugin.library")
 }
 
-android {
-    namespace = "blazern.langample.data.lexical_item_details_source.api"
-}
+kotlin {
+    androidLibrary {
+        namespace = "blazern.lexisoup.data.lexical_item_details_source.api"
+    }
 
-dependencies {
-    api(project(":domain:model"))
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":domain:model"))
+        }
+    }
 }

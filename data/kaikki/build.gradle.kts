@@ -1,17 +1,25 @@
 plugins {
-    id("blazern.langample.plugin.library")
+    id("blazern.lexisoup.plugin.library")
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
-android {
-    namespace = "blazern.langample.data.kaikki"
-}
+kotlin {
+    androidLibrary {
+        namespace = "blazern.lexisoup.data.kaikki"
+    }
 
-dependencies {
-    implementation(libs.kotlinx.serialization.core)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.ktor.client.core)
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.ktor.client.core)
 
-    api(project(":domain:model"))
-    implementation(project(":core:ktor"))
+                api(project(":domain:model"))
+                implementation(project(":domain:backend-address"))
+                implementation(project(":core:ktor"))
+                implementation(project(":core:utils"))
+            }
+        }
+    }
 }

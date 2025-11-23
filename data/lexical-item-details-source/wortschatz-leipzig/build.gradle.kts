@@ -1,19 +1,27 @@
 plugins {
-    id("blazern.langample.plugin.library")
+    id("blazern.lexisoup.plugin.feature")
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
-android {
-    namespace = "blazern.langample.data.lexical_item_details_source.wortschatz_leipzig"
-}
+kotlin {
+    androidLibrary {
+        namespace = "blazern.lexisoup.data.lexical_item_details_source.wortschatz_leipzig"
+    }
 
-dependencies {
-    implementation(libs.kotlinx.serialization.core)
-    implementation(libs.ktor.client.core)
-    api(project(":domain:model"))
-    api(project(":data:lexical-item-details-source:api"))
-    implementation(project(":data:lexical-item-details-source:utils:cache"))
-    implementation(project(":data:lexical-item-details-source:utils:examples-tools"))
-    implementation(project(":core:ktor"))
-    testImplementation(project(":core:utils"))
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.ktor.client.core)
+
+                api(project(":domain:model"))
+                api(project(":data:lexical-item-details-source:api"))
+                implementation(project(":core:ktor"))
+                implementation(project(":core:utils"))
+                implementation(project(":domain:backend-address"))
+                implementation(project(":data:lexical-item-details-source:utils:cache"))
+                implementation(project(":data:lexical-item-details-source:utils:examples-tools"))
+            }
+        }
+    }
 }

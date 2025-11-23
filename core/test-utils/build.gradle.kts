@@ -1,12 +1,15 @@
 plugins {
-    id("blazern.langample.plugin.core")
+    id("blazern.lexisoup.plugin.feature")
 }
 
-android {
-    namespace = "blazern.langample.test_utils"
-}
+kotlin {
+    androidLibrary {
+        namespace = "blazern.lexisoup.a.template.kmp.common"
+    }
 
-dependencies {
-    implementation(libs.junit)
-    implementation(libs.kotlinx.coroutines.test)
+    sourceSets {
+        commonMain.dependencies {
+            implementation(project(":data:lexisoup-graphql"))
+        }
+    }
 }

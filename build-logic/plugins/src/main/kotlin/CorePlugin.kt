@@ -1,65 +1,70 @@
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.dsl.androidLibrary
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
-import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 open class CorePlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-            with(pluginManager) {
-                apply(libs.findPlugin("android-library").get().get().pluginId)
-                apply(libs.findPlugin("kotlin-android").get().get().pluginId)
-                apply(libs.findPlugin("ksp").get().get().pluginId)
-                apply(libs.findPlugin("detekt").get().get().pluginId)
-            }
+    override fun apply(target: Project) = with(target) {
+        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
-            extensions.configure(DetektExtension::class.java) { detekt ->
-                detekt.buildUponDefaultConfig = true
-                detekt.config.setFrom(rootProject.files("config/detekt/detekt.yml"))
-            }
-            tasks.withType(Detekt::class.java).configureEach {
-                it.reports.html.required.set(true)
-                it.reports.md.required.set(true)
-            }
+        with(pluginManager) {
+            apply(libs.findPlugin("kotlinMultiplatform").get().get().pluginId)
+            apply(libs.findPlugin("androidKotlinMultiplatformLibrary").get().get().pluginId)
+            apply(libs.findPlugin("detekt").get().get().pluginId)
+        }
 
-            extensions.configure(LibraryExtension::class.java) {
-                it.apply {
-                    compileSdk = 36
+        extensions.configure<DetektExtension> {
+            buildUponDefaultConfig = true
+            config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+        }
+        tasks.withType(Detekt::class.java).configureEach {
+            reports.html.required.set(true)
+            reports.md.required.set(true)
+        }
 
-                    defaultConfig {
-                        minSdk = 24
-                        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-                        consumerProguardFiles("consumer-rules.pro")
-                    }
-                    buildTypes {
-                        release {
-                            isMinifyEnabled = false
-                            proguardFiles(
-                                getDefaultProguardFile("proguard-android-optimize.txt"),
-                                "proguard-rules.pro"
-                            )
-                        }
-                    }
-                    compileOptions {
-                        sourceCompatibility = JavaVersion.VERSION_11
-                        targetCompatibility = JavaVersion.VERSION_11
-                    }
+        tasks.withType<KotlinCompile>().configureEach {
+            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+        }
+
+        extensions.configure<KotlinMultiplatformExtension> {
+            @Suppress("UnstableApiUsage")
+            androidLibrary {
+                compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
+                minSdk = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
+
+                withHostTestBuilder {
                 }
 
-                tasks.withType<KotlinCompile>().configureEach { compileTask ->
-                    compileTask.apply {
-                        compilerOptions {
-                            jvmTarget.set(JvmTarget.JVM_11)
-                        }
-                    }
+                experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
+            }
+
+            iosX64()
+            iosArm64()
+            iosSimulatorArm64()
+
+            js {
+                browser()
+                binaries.library()
+            }
+
+            sourceSets.apply {
+                commonMain.dependencies {
+                    implementation(libs.findLibrary("kotlin-stdlib").get())
+                    implementation(libs.findLibrary("kotlinx-io").get())
+                    implementation(libs.findLibrary("kotlinx-coroutines-core").get())
+                }
+                commonTest.dependencies {
+                    implementation(libs.findLibrary("kotlin-test").get())
+                    implementation(libs.findLibrary("ktor-client-mock").get())
+                    implementation(libs.findLibrary("kotlinx-coroutines-test").get())
                 }
             }
         }

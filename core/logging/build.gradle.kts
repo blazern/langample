@@ -1,9 +1,9 @@
-import org.gradle.internal.classpath.Instrumented.systemProperty
-
 plugins {
-    id("blazern.langample.plugin.core")
+    id("blazern.lexisoup.plugin.core")
 }
 
-android {
-    namespace = "blazern.langample.core.logging"
+kotlin {
+    androidLibrary {
+        namespace = "blazern.lexisoup.core.logging"
+    }
 }

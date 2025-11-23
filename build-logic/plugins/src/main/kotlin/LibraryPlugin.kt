@@ -1,29 +1,36 @@
-import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.getByType
-import org.gradle.kotlin.dsl.kotlin
-import org.gradle.kotlin.dsl.project
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import kotlin.jvm.kotlin
 
 open class LibraryPlugin : CorePlugin() {
-    override fun apply(target: Project) {
+    override fun apply(target: Project) = with(target) {
         super.apply(target)
 
-        with(target) {
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-            extensions.configure(LibraryExtension::class.java) {
-                dependencies {
-                    add("implementation", libs.findLibrary("androidx-core-ktx").get())
-                    add("implementation", libs.findLibrary("koin-core").get())
-                    add("implementation", libs.findLibrary("arrow-core").get())
-                    add("implementation", project(":core:logging"))
-                    add("testImplementation", libs.findLibrary("junit").get())
-                    add("testImplementation", libs.findLibrary("ktor-client-mock").get())
-                    add("testImplementation", libs.findLibrary("mockk").get())
-                    add("testImplementation", libs.findLibrary("kotlinx-coroutines-test").get())
-                    add("testImplementation", kotlin("test"))
-                    add("androidTestImplementation", libs.findLibrary("androidx-junit").get())
+        val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+        with(pluginManager) {
+            apply(libs.findPlugin("composeMultiplatform").get().get().pluginId)
+            apply(libs.findPlugin("composeCompiler").get().get().pluginId)
+        }
+
+        extensions.configure<KotlinMultiplatformExtension> {
+            sourceSets.apply {
+                commonMain.dependencies {
+                    implementation(libs.findLibrary("arrow-core").get())
+                    implementation(libs.findLibrary("koin-core").get())
+                    implementation(libs.findLibrary("koin-compose-viewmodel").get())
+
+                    implementation(libs.findLibrary("compose-runtime").get())
+                    implementation(libs.findLibrary("compose-foundation").get())
+                    implementation(libs.findLibrary("compose-ui").get())
+                    implementation(libs.findLibrary("compose-material3").get())
+                    implementation(libs.findLibrary("compose-components-resources").get())
+                    implementation(libs.findLibrary("compose-components-uiToolingPreview").get())
+
+                    implementation(project(":core:logging"))
                 }
             }
         }

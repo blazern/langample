@@ -1,6 +1,6 @@
 plugins {
     `java-gradle-plugin`
-    alias(libs.plugins.kotlin.jvm)
+    `kotlin-dsl`
 }
 
 repositories {
@@ -20,21 +20,20 @@ dependencies {
     compileOnly(libs.detekt.gradle.plugin)
 
     implementation(gradleKotlinDsl())
-    testImplementation(libs.junit)
 }
 
 gradlePlugin {
     plugins {
         create("corePlugin") {
-            id = "blazern.langample.plugin.core"
+            id = "blazern.lexisoup.plugin.core"
             implementationClass = "CorePlugin"
         }
         create("libraryPlugin") {
-            id = "blazern.langample.plugin.library"
+            id = "blazern.lexisoup.plugin.library"
             implementationClass = "LibraryPlugin"
         }
         create("featurePlugin") {
-            id = "blazern.langample.plugin.feature"
+            id = "blazern.lexisoup.plugin.feature"
             implementationClass = "FeaturePlugin"
         }
     }
