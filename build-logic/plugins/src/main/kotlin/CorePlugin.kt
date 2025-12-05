@@ -25,9 +25,22 @@ open class CorePlugin : Plugin<Project> {
             buildUponDefaultConfig = true
             config.setFrom(rootProject.files("config/detekt/detekt.yml"))
         }
-        tasks.withType(Detekt::class.java).configureEach {
+        tasks.withType<Detekt>().configureEach {
             reports.html.required.set(true)
             reports.md.required.set(true)
+
+            setSource(
+                files(
+                    "src/commonMain/kotlin",
+                    "src/commonTest/kotlin",
+                    "src/androidMain/kotlin",
+                    "src/androidTest/kotlin",
+                    "src/iosMain/kotlin",
+                    "src/iosTest/kotlin",
+                    "src/jsMain/kotlin",
+                    "src/jsTest/kotlin",
+                )
+            )
         }
 
         tasks.withType<KotlinCompile>().configureEach {
