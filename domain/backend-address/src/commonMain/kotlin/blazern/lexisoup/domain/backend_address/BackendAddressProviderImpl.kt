@@ -22,5 +22,5 @@ internal class BackendAddressProviderImpl(
     }
 }
 
-private const val DEFAULT_BASE_URL = "https://blazern.me/langample/"
+private const val DEFAULT_BASE_URL = "https://lexisoup.com/api/"
 private const val LOCALHOST_BASE_URL = "http://localhost:8888"
