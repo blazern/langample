@@ -1,0 +1,43 @@
+name: create release
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-app-and-create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+
+      - name: Build JS
+        run: ./gradlew jsBrowserDistribution
+
+      - name: Archive JS
+        run: |
+          cd composeApp/build/dist/js/productionExecutable
+          zip -r ../../../../../js-dist.zip .
+
+      - name: Generate timestamp tag
+        id: gen_tag
+        run: echo "tag=release-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Create a GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+            tag_name: ${{ steps.gen_tag.outputs.tag }}
+            name: "${{ steps.gen_tag.outputs.tag }}"
+            draft: false
+            prerelease: false
+            files: js-dist.zip
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
