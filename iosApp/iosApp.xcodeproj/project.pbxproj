@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		1F570BC395F7C96C71593897 /* LexiSoup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LexiSoup.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F570BC395F7C96C71593897 /* lexisoup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lexisoup.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		015E4640A2E426620200395E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1F570BC395F7C96C71593897 /* LexiSoup.app */,
+				1F570BC395F7C96C71593897 /* lexisoup.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 1F570BC395F7C96C71593897 /* LexiSoup.app */;
+			productReference = 1F570BC395F7C96C71593897 /* lexisoup.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

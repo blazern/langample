@@ -1,4 +1,4 @@
-rootProject.name = "LexiSoup"
+rootProject.name = "lexisoup"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
