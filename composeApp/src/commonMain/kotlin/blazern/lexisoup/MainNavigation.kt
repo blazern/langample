@@ -1,7 +1,5 @@
 package blazern.lexisoup
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -12,6 +10,7 @@ import androidx.savedstate.read
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.HomeRoute
 import blazern.lexisoup.feature.search_results.SearchResultsRoute
+import blazern.lexisoup.privacy_policy.PrivacyPolicyRoute
 import io.ktor.http.encodeURLParameter
 
 @Composable
@@ -28,7 +27,10 @@ fun MainNavigation() {
                                 "&$ARG_LANG_FROM=${langFrom.iso3}" +
                                 "&$ARG_LANG_TO=${langTo.iso3}"
                     )
-                }
+                },
+                onPrivacyPolicyClick = {
+                    navController.navigate(ROUTE_PRIVACY_POLICY)
+                },
             )
         }
 
@@ -53,11 +55,14 @@ fun MainNavigation() {
                 Lang.fromIso3(langTo) ?: Lang.EN,
             )
         }
+
+        composable(ROUTE_PRIVACY_POLICY) { PrivacyPolicyRoute() }
     }
 }
 
 private const val ROUTE_HOME = "home"
 private const val ROUTE_SEARCH_RESULTS = "search_results"
+private const val ROUTE_PRIVACY_POLICY = "privacy_policy"
 
 private const val ARG_QUERY = "query"
 private const val ARG_LANG_FROM = "lang_from"

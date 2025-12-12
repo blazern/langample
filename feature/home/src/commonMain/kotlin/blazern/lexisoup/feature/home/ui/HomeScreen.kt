@@ -1,5 +1,6 @@
 package blazern.lexisoup.feature.home.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +22,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import blazern.lexisoup.core.ui.components.SearchBar
 import blazern.lexisoup.core.ui.strings.stringResource
 import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LinkColor
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.SearchFn
 import blazern.lexisoup.feature.home.model.HomeScreenState
@@ -36,6 +40,7 @@ import lexisoup.core.ui.strings.generated.resources.home_input_hint
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import lexisoup.core.ui.strings.generated.resources.Res as ResStr
 
+@Suppress("LongParameterList")
 @Composable
 internal fun HomeScreen(
     state: HomeScreenState,
@@ -43,6 +48,7 @@ internal fun HomeScreen(
     onLangsChange: (langFrom: Lang, langTo: Lang)->Unit,
     onSearch: SearchFn,
     onLocalhostToggled: (Boolean)->Unit,
+    onPrivacyPolicyClick: ()->Unit,
 ) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Box(
@@ -111,6 +117,16 @@ internal fun HomeScreen(
                     )
                 }
             }
+
+            Text(
+                text = "Privacy policy",
+                color = LinkColor,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .clickable { onPrivacyPolicyClick() }
+            )
         }
     }
 }
@@ -162,7 +178,8 @@ private fun Preview() {
             onQueryChange = {},
             onLangsChange = { _, _ -> },
             onSearch = { _, _, _ -> },
-            onLocalhostToggled = {}
+            onLocalhostToggled = {},
+            onPrivacyPolicyClick = {},
         )
     }
 }
