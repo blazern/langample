@@ -12,7 +12,10 @@ import org.koin.core.parameter.parametersOf
 typealias SearchFn = (query: String, langFrom: Lang, langTo: Lang)->Unit
 
 @Composable
-fun HomeRoute(onSearch: SearchFn) {
+fun HomeRoute(
+    onSearch: SearchFn,
+    onPrivacyPolicyClick: ()->Unit,
+) {
     val startQuery = ""
     val viewModel: HomeScreenViewModel = koinViewModel(
         parameters = { parametersOf(startQuery) },
@@ -24,5 +27,6 @@ fun HomeRoute(onSearch: SearchFn) {
         viewModel::onLangsChange,
         onSearch,
         viewModel::onLocalhostToggled,
+        onPrivacyPolicyClick,
     )
 }

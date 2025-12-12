@@ -57,6 +57,7 @@ kotlin {
 
             implementation(project(":feature:home"))
             implementation(project(":feature:search-results"))
+            implementation(project(":feature:privacy-policy"))
         }
         androidMain.dependencies {
             implementation(compose.preview)
