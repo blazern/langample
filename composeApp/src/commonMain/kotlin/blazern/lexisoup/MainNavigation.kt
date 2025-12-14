@@ -1,6 +1,8 @@
 package blazern.lexisoup
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,8 +16,13 @@ import blazern.lexisoup.privacy_policy.PrivacyPolicyRoute
 import io.ktor.http.encodeURLParameter
 
 @Composable
-fun MainNavigation() {
+fun MainNavigation(
+    onNavHostReady: suspend (NavController) -> Unit = {},
+) {
     val navController = rememberNavController()
+    LaunchedEffect(navController) {
+        onNavHostReady(navController)
+    }
 
     NavHost(navController, startDestination = ROUTE_HOME) {
         composable(ROUTE_HOME) {
