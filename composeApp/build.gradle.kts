@@ -49,6 +49,7 @@ kotlin {
 
             implementation(project(":a-template-kmp-common"))
             implementation(project(":core:ui:strings"))
+            implementation(project(":core:ui:theme"))
             implementation(project(":core:ktor"))
             implementation(project(":domain:backend-address"))
             implementation(project(":domain:model"))

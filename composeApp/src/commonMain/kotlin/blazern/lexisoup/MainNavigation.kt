@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.savedstate.read
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.HomeRoute
 import blazern.lexisoup.feature.search_results.SearchResultsRoute
@@ -17,6 +18,15 @@ import io.ktor.http.encodeURLParameter
 
 @Composable
 fun MainNavigation(
+    onNavHostReady: suspend (NavController) -> Unit = {},
+) {
+    LexisoupTheme {
+        MainNavigationImpl(onNavHostReady)
+    }
+}
+
+@Composable
+private fun MainNavigationImpl(
     onNavHostReady: suspend (NavController) -> Unit = {},
 ) {
     val navController = rememberNavController()

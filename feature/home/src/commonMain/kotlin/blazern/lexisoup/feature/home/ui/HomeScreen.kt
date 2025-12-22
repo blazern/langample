@@ -22,13 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import blazern.lexisoup.core.ui.components.SearchBar
 import blazern.lexisoup.core.ui.strings.stringResource
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import blazern.lexisoup.core.ui.theme.LinkColor
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.feature.home.SearchFn
@@ -172,7 +171,7 @@ private fun Preview() {
         canSearch = true,
         isLocalhost = false,
     )
-    LangampleTheme {
+    LexisoupTheme {
         HomeScreen(
             state = state,
             onQueryChange = {},
