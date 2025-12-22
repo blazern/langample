@@ -13,7 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import blazern.lexisoup.domain.model.DataSource
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.domain.model.LexicalItemDetail
@@ -158,7 +158,7 @@ private fun Preview() {
         ),
     )
 
-    LangampleTheme {
+    LexisoupTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             FoundSearchResults(
                 state = state,

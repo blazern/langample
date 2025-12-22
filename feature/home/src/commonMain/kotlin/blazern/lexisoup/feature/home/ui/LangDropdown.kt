@@ -1,6 +1,5 @@
 package blazern.lexisoup.feature.home.ui
 
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -16,7 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import blazern.lexisoup.core.ui.strings.stringResource
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.domain.model.strRsc
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -63,7 +62,7 @@ fun LangDropdown(
 @Preview
 @Composable
 private fun Preview() {
-    LangampleTheme {
+    LexisoupTheme {
         LangDropdown(
             Lang.EN,
             textAlign = TextAlign.End,

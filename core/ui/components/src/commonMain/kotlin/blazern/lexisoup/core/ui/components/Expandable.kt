@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.exp
 import kotlin.math.min
@@ -190,7 +190,7 @@ private fun Modifier.bottomFadeMask(
 @Preview
 @Composable
 private fun PreviewSmall() {
-    LangampleTheme {
+    LexisoupTheme {
         Box(modifier = Modifier.height(256.dp)) {
             Expandable {
                 Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
@@ -203,7 +203,7 @@ private fun PreviewSmall() {
 @Preview
 @Composable
 private fun PreviewBig() {
-    LangampleTheme {
+    LexisoupTheme {
         Box(modifier = Modifier.height(256.dp)) {
             Expandable {
                 Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")

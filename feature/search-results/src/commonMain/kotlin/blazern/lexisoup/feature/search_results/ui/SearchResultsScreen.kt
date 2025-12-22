@@ -38,7 +38,7 @@ import blazern.lexisoup.feature.search_results.model.LexicalItemDetailsGroupStat
 import blazern.lexisoup.feature.search_results.model.SearchResultsState
 import blazern.lexisoup.feature.search_results.ui.list.LexicalItemDetailCallbacks
 import blazern.lexisoup.core.ui.strings.stringResource
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import kotlinx.coroutines.launch
 import lexisoup.core.ui.strings.generated.resources.Res
 import lexisoup.core.ui.strings.generated.resources.general_copied_to_clipboard
@@ -182,7 +182,7 @@ private fun PreviewAllGood() {
         )
     )
 
-    LangampleTheme {
+    LexisoupTheme {
         SearchResultsScreen(
             query = "Hund",
             state = state,
@@ -229,7 +229,7 @@ private fun PreviewErrors() {
         )
     )
 
-    LangampleTheme {
+    LexisoupTheme {
         SearchResultsScreen(
             query = "Herangehensweise",
             state = state,

@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import blazern.lexisoup.domain.model.DataSource
 import blazern.lexisoup.domain.model.Lang
 import blazern.lexisoup.domain.model.Sentence
@@ -69,7 +69,7 @@ internal data class SentenceData(
 @Preview
 @Composable
 fun Sentences2CardPreview() {
-    LangampleTheme {
+    LexisoupTheme {
         SentencesCard(
             listOf(
                 SentenceData(
@@ -108,7 +108,7 @@ fun Sentences2CardPreview() {
 @Preview
 @Composable
 fun Sentences3CardPreview() {
-    LangampleTheme {
+    LexisoupTheme {
         SentencesCard(
             listOf(
                 SentenceData(

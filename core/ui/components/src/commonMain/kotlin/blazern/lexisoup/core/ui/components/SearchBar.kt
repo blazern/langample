@@ -10,9 +10,8 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import blazern.lexisoup.core.ui.theme.LangampleTheme
+import blazern.lexisoup.core.ui.theme.LexisoupTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +56,7 @@ fun SearchBar(
 @Preview(name = "400x500", heightDp = 400, widthDp = 500)
 @Composable
 private fun Preview() {
-    LangampleTheme {
+    LexisoupTheme {
         SearchBar(
             "Search query",
             onQueryChange = {},
